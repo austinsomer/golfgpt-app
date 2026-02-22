@@ -1,27 +1,44 @@
 # CONTEXT.md — Project State
 
 ## Project
-**Phase:** 0 — Scaffolding & data layer setup  
-**Last stable:** Phase 0 scaffold + mobile app shell ✅
+**Phase:** 1 — Core Data Layer  
+**Last stable:** Phase 0 complete — repo scaffold + Expo app shell ✅
+
+---
 
 ## GUPPI
-**Working on:** Phase 0 complete — repo scaffold, Supabase schema  
-**Status:** Done  
-**Next:** Apply Supabase migration manually via dashboard (see dev log)  
-**Last updated:** 2026-02-22T13:35:00-07:00
+**Working on:** Phase 1 scraping infrastructure + course catalog  
+**Status:** Active  
+**Next:** ForeUp scraper research + build, Railway deployment, course seed data  
+**Last updated:** 2026-02-22
 
 ## Ed
-**Working on:** Phase 1 planning  
-**Status:** Mobile app scaffold complete  
-**Completed:** Expo app in apps/mobile/ — navigation, screens, stores, theme  
-**Next:** Phase 1 — scraper layer (ForeUp) + Supabase integration  
-**Last updated:** 2026-02-22T13:45:00-07:00
+**Working on:** Phase 1 prep — design system application + real data wiring  
+**Status:** Active  
+**Next:** Apply DESIGN_SYSTEM.md to app shell (theme, typography, components), then wire Supabase client  
+**Last updated:** 2026-02-22
 
-## Mobile App Shell (Phase 0)
-- ✅ Expo blank-typescript base
-- ✅ React Navigation (bottom tabs + native stacks)
-- ✅ Zustand stores: searchStore, chatStore
-- ✅ Theme constants (golf green, spacing, radius)
-- ✅ Screens: Search, TeeTimes, Chat, CourseList, CourseDetail
-- ✅ Components: TeeTimeCard, MessageBubble
-- ✅ All mock data, no API calls yet
+---
+
+## Milestone Log
+
+### Phase 0 ✅ DONE
+- [x] GitHub repo + full doc structure
+- [x] Supabase project created (project: opzqsxrfqasqadnjdgop)
+- [x] Schema migration written + **APPLIED** (Austin ran 2026-02-22)
+  - Tables live: `courses`, `tee_times`, `scraper_runs`
+  - RLS not yet enabled (fine for now, flag for pre-launch)
+- [x] Expo app scaffolded: 3-tab navigation, 5 screens, Zustand stores, mock data
+- [x] Design system captured (docs/DESIGN_SYSTEM.md)
+- [x] App tested on device via Expo Go ✅
+
+### Phase 1 🔄 IN PROGRESS
+- [x] Supabase migration applied
+- [ ] Course catalog research (~60-80 courses: name, booking URL, platform)
+- [ ] ForeUp scraper (GUPPI)
+- [ ] Lightspeed/Chronogolf scraper (GUPPI)
+- [ ] Custom scrapers for outliers (GUPPI)
+- [ ] Railway deployment + 20-min cron (GUPPI)
+- [ ] Data validation: 10+ courses spot-checked
+- [ ] Apply design system to mobile app shell (Ed)
+- [ ] Wire Supabase client into app (Ed)
