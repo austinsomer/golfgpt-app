@@ -10,3 +10,4 @@ When resolved, move the decision to docs/decisions/ as an ADR.
 - [ ] **OQ-003: Google Play account** — Not started. Needed before Play Store submission (Phase 5)
 - [ ] **OQ-004: Domain** — golfgpt.com taken. Willing to use .app or .co?
 - [ ] **OQ-005: OpenAI account** — API key in 1Password. Does Austin need to add billing/credit?
+

@@ -115,3 +115,4 @@ Mobile adaptation:
 - **Dark mode:** Inverted cream→dark + keep greens, or full redesign?
 - **Mobile nav pattern:** Bottom tab bar? Slide-out drawer? Bottom sheet filters?
 - **App icon:** Golf flag + chat bubble combo mark (seen in mockup top-left)
+
