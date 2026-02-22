@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Message } from '../store/chatStore';
-import { colors, spacing, radius } from '../constants/theme';
+import { colors, spacing, radius, typography, borders } from '../constants/theme';
 
 interface Props {
   message: Message;
@@ -12,12 +12,7 @@ export function MessageBubble({ message }: Props) {
 
   return (
     <View style={[styles.row, isUser ? styles.rowUser : styles.rowAssistant]}>
-      <View
-        style={[
-          styles.bubble,
-          isUser ? styles.bubbleUser : styles.bubbleAssistant,
-        ]}
-      >
+      <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAssistant]}>
         <Text style={[styles.text, isUser ? styles.textUser : styles.textAssistant]}>
           {message.content}
         </Text>
@@ -38,29 +33,33 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   bubble: {
-    maxWidth: '80%',
-    borderRadius: radius.lg,
+    maxWidth: '82%',
+    borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
   },
+  // User: filled green
   bubbleUser: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.brandGreen,
     borderBottomRightRadius: radius.sm,
   },
+  // Assistant: outlined, transparent-ish — blends with cream bg
   bubbleAssistant: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.bgCream,
+    borderWidth: borders.active,
+    borderColor: colors.brandGreenLight,
     borderBottomLeftRadius: radius.sm,
   },
   text: {
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
   },
   textUser: {
-    color: '#FFFFFF',
+    fontFamily: typography.body,
+    color: colors.white,
   },
   textAssistant: {
-    color: colors.text,
+    fontFamily: typography.body,
+    color: colors.textPrimary,
   },
 });

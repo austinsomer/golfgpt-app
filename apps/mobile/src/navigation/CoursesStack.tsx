@@ -2,7 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CourseListScreen, Course } from '../screens/Courses/CourseListScreen';
 import { CourseDetailScreen } from '../screens/Courses/CourseDetailScreen';
-import { colors } from '../constants/theme';
+import { colors, typography } from '../constants/theme';
 
 export type CoursesStackParamList = {
   CourseList: undefined;
@@ -15,9 +15,13 @@ export function CoursesStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.primary,
-        headerTitleStyle: { fontWeight: '700', color: colors.text },
+        headerStyle: { backgroundColor: colors.bgCream },
+        headerTintColor: colors.brandGreen,
+        headerTitleStyle: {
+          fontFamily: typography.serif,
+          fontSize: 16,
+          color: colors.textPrimary,
+        },
         headerShadowVisible: false,
       }}
     >

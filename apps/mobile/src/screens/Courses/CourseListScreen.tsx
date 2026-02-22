@@ -5,11 +5,11 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, radius } from '../../constants/theme';
+import { colors, spacing, typography, borders } from '../../constants/theme';
 import { CoursesStackParamList } from '../../navigation/CoursesStack';
 
 export interface Course {
@@ -38,7 +38,7 @@ const MOCK_COURSES: Course[] = [
     county: 'Salt Lake',
     holes: 36,
     par: 71,
-    description: 'Two 18-hole courses nestled in Parley\'s Canyon east of SLC.',
+    description: "Two 18-hole courses nestled in Parley's Canyon east of SLC.",
     bookingUrl: 'https://example.com/mountain-dell',
   },
   {
@@ -56,7 +56,7 @@ const MOCK_COURSES: Course[] = [
     county: 'Utah County',
     holes: 18,
     par: 72,
-    description: 'Orem\'s premier public course with wide fairways and challenging greens.',
+    description: "Orem's premier public course with wide fairways and challenging greens.",
     bookingUrl: 'https://example.com/sleepy-ridge',
   },
   {
@@ -78,9 +78,11 @@ export function CourseListScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.heading}>Utah Golf Courses</Text>
+        <Text style={styles.heading}>UTAH COURSES</Text>
         <Text style={styles.subheading}>{MOCK_COURSES.length} public courses · MVP scope</Text>
       </View>
+      <View style={styles.divider} />
+      {/* Pure typographic list — no cards, per design system */}
       <FlatList
         data={MOCK_COURSES}
         keyExtractor={(item) => item.id}
@@ -88,15 +90,15 @@ export function CourseListScreen({ navigation }: Props) {
           <TouchableOpacity
             style={styles.courseRow}
             onPress={() => navigation.navigate('CourseDetail', { course: item })}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
             <View style={styles.courseInfo}>
-              <Text style={styles.courseName}>{item.name}</Text>
+              <Text style={styles.courseName}>{item.name.toUpperCase()}</Text>
               <Text style={styles.courseMeta}>
-                {item.county} County · {item.holes} holes · Par {item.par}
+                {item.county.toUpperCase()} · {item.holes} HOLES · PAR {item.par}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={16} color={colors.borderDefault} />
           </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -110,7 +112,7 @@ export function CourseListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.bgCream,
   },
   header: {
     paddingHorizontal: spacing.lg,
@@ -118,47 +120,55 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: typography.serif,
+    fontSize: 26,
+    color: colors.textPrimary,
+    letterSpacing: -0.3,
     marginBottom: spacing.xs,
   },
   subheading: {
-    fontSize: 14,
-    color: colors.textSecondary,
+    fontFamily: typography.body,
+    fontSize: typography.caption.fontSize,
+    letterSpacing: typography.caption.letterSpacing,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+  },
+  divider: {
+    height: borders.default,
+    backgroundColor: colors.borderDefault,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
   },
   list: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
   courseRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
+    paddingVertical: spacing.lg,
   },
   courseInfo: {
     flex: 1,
   },
+  // Bold uppercase course name — per favorites list spec
   courseName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 2,
+    fontFamily: typography.serif,
+    fontSize: 15,
+    color: colors.textPrimary,
+    letterSpacing: 0.5,
+    marginBottom: 4,
   },
   courseMeta: {
-    fontSize: 13,
+    fontFamily: typography.body,
+    fontSize: typography.caption.fontSize,
+    letterSpacing: typography.caption.letterSpacing,
     color: colors.textSecondary,
+    textTransform: 'uppercase',
   },
   separator: {
-    height: 1,
-    backgroundColor: colors.border,
+    height: borders.default,
+    backgroundColor: colors.borderDefault,
     marginLeft: spacing.lg,
-  },
-  tag: {
-    backgroundColor: '#E8F5EE',
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
   },
 });

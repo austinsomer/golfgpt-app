@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, radius } from '../../constants/theme';
+import { colors, spacing, radius, typography, borders } from '../../constants/theme';
 import { useSearchStore } from '../../store/searchStore';
 import { SearchStackParamList } from '../../navigation/SearchStack';
 
@@ -16,7 +16,7 @@ type Props = {
   navigation: NativeStackNavigationProp<SearchStackParamList, 'Search'>;
 };
 
-const COUNTIES = ['All Counties', 'Salt Lake', 'Utah County', 'Summit', 'Washington'];
+const COUNTIES = ['ALL', 'SALT LAKE', 'UTAH COUNTY', 'SUMMIT', 'WASHINGTON'];
 const PLAYER_OPTIONS = [1, 2, 3, 4];
 
 export function SearchScreen({ navigation }: Props) {
@@ -24,29 +24,39 @@ export function SearchScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.heading}>Find Tee Times</Text>
-        <Text style={styles.subheading}>Utah public golf courses — all in one place.</Text>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.logo}>UTAH TEE-UP</Text>
+          <Text style={styles.tagline}>FIND YOUR FAIRWAY</Text>
+        </View>
 
-        {/* Date selector placeholder */}
+        <View style={styles.divider} />
+
+        {/* Date */}
         <View style={styles.section}>
-          <Text style={styles.label}>Date</Text>
-          <TouchableOpacity style={styles.selector}>
-            <Text style={styles.selectorText}>Today — Saturday, Feb 22</Text>
+          <Text style={styles.sectionLabel}>DATE</Text>
+          <TouchableOpacity style={styles.dateSelector}>
+            <Text style={styles.dateSelectorText}>Today — Saturday, Feb 22</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Players */}
+        {/* Players — grid cells, sharp corners */}
         <View style={styles.section}>
-          <Text style={styles.label}>Players</Text>
-          <View style={styles.chipRow}>
-            {PLAYER_OPTIONS.map((n) => (
+          <Text style={styles.sectionLabel}>PLAYERS</Text>
+          <View style={styles.playerGrid}>
+            {PLAYER_OPTIONS.map((n, i) => (
               <TouchableOpacity
                 key={n}
-                style={[styles.chip, players === n && styles.chipActive]}
+                style={[
+                  styles.playerCell,
+                  i === 0 && styles.playerCellFirst,
+                  i === PLAYER_OPTIONS.length - 1 && styles.playerCellLast,
+                  players === n && styles.playerCellActive,
+                ]}
                 onPress={() => setPlayers(n)}
               >
-                <Text style={[styles.chipText, players === n && styles.chipTextActive]}>
+                <Text style={[styles.playerCellText, players === n && styles.playerCellTextActive]}>
                   {n}
                 </Text>
               </TouchableOpacity>
@@ -56,17 +66,18 @@ export function SearchScreen({ navigation }: Props) {
 
         {/* County */}
         <View style={styles.section}>
-          <Text style={styles.label}>County</Text>
-          <View style={styles.chipRow}>
+          <Text style={styles.sectionLabel}>AREA</Text>
+          <View style={styles.countyList}>
             {COUNTIES.map((c) => (
               <TouchableOpacity
                 key={c}
-                style={[styles.chip, county === c && styles.chipActive]}
+                style={[styles.countyRow, county === c && styles.countyRowActive]}
                 onPress={() => setCounty(c)}
               >
-                <Text style={[styles.chipText, county === c && styles.chipTextActive]}>
+                <Text style={[styles.countyText, county === c && styles.countyTextActive]}>
                   {c}
                 </Text>
+                {county === c && <Text style={styles.checkmark}>✓</Text>}
               </TouchableOpacity>
             ))}
           </View>
@@ -75,8 +86,9 @@ export function SearchScreen({ navigation }: Props) {
         <TouchableOpacity
           style={styles.searchButton}
           onPress={() => navigation.navigate('TeeTimes')}
+          activeOpacity={0.85}
         >
-          <Text style={styles.searchButtonText}>Search Tee Times</Text>
+          <Text style={styles.searchButtonText}>SEARCH TEE TIMES</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -86,79 +98,138 @@ export function SearchScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.bgCream,
   },
   content: {
     padding: spacing.lg,
+    paddingBottom: spacing.xxl,
   },
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.xs,
+  header: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
   },
-  subheading: {
-    fontSize: 15,
+  logo: {
+    fontFamily: typography.serif,
+    fontSize: typography.logo.fontSize,
+    letterSpacing: typography.logo.letterSpacing,
+    color: colors.textPrimary,
+    textTransform: 'uppercase',
+  },
+  tagline: {
+    fontFamily: typography.body,
+    fontSize: typography.tagline.fontSize,
+    letterSpacing: typography.tagline.letterSpacing,
     color: colors.textSecondary,
-    marginBottom: spacing.xl,
+    textTransform: 'uppercase',
+    marginTop: spacing.xs,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.borderDefault,
+    marginBottom: spacing.lg,
   },
   section: {
     marginBottom: spacing.lg,
   },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
+  sectionLabel: {
+    fontFamily: typography.bodyBold,
+    fontSize: typography.sectionLabel.fontSize,
+    letterSpacing: typography.sectionLabel.letterSpacing,
     color: colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
     marginBottom: spacing.sm,
   },
-  selector: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
+  dateSelector: {
+    borderWidth: borders.default,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.sm,
     padding: spacing.md,
-  },
-  selectorText: {
-    fontSize: 15,
-    color: colors.text,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  chipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+  dateSelectorText: {
+    fontFamily: typography.body,
+    fontSize: typography.body.fontSize,
+    color: colors.textPrimary,
   },
-  chipText: {
+  // Sharp grid cells for player count
+  playerGrid: {
+    flexDirection: 'row',
+  },
+  playerCell: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    borderWidth: borders.default,
+    borderColor: colors.borderDefault,
+    borderLeftWidth: 0,
+    backgroundColor: colors.surface,
+  },
+  playerCellFirst: {
+    borderLeftWidth: borders.default,
+    borderRadius: 0,
+  },
+  playerCellLast: {
+    borderRadius: 0,
+  },
+  playerCellActive: {
+    backgroundColor: colors.brandGreen,
+    borderColor: colors.brandGreen,
+  },
+  playerCellText: {
+    fontFamily: typography.bodyBold,
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  playerCellTextActive: {
+    color: colors.white,
+  },
+  // Time of day rows — slight rounding
+  countyList: {
+    borderWidth: borders.default,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+  },
+  countyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface,
+    borderBottomWidth: borders.default,
+    borderBottomColor: colors.borderDefault,
+  },
+  countyRowActive: {
+    backgroundColor: colors.brandGreen,
+  },
+  countyText: {
+    fontFamily: typography.bodyBold,
+    fontSize: typography.button.fontSize,
+    letterSpacing: typography.button.letterSpacing,
+    color: colors.textPrimary,
+    textTransform: 'uppercase',
+  },
+  countyTextActive: {
+    color: colors.white,
+  },
+  checkmark: {
+    color: colors.white,
     fontSize: 14,
-    color: colors.text,
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   searchButton: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
+    backgroundColor: colors.brandGreen,
     padding: spacing.md,
     alignItems: 'center',
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: radius.sm,
   },
   searchButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: typography.bodyBold,
+    fontSize: typography.button.fontSize,
+    letterSpacing: typography.button.letterSpacing,
+    color: colors.white,
+    textTransform: 'uppercase',
   },
 });

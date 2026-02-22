@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SearchStack } from './SearchStack';
 import { CoursesStack } from './CoursesStack';
 import { ChatScreen } from '../screens/Chat/ChatScreen';
-import { colors } from '../constants/theme';
+import { colors, typography, borders } from '../constants/theme';
 
 type TabParamList = {
   SearchTab: undefined;
@@ -21,16 +21,18 @@ export function AppNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.textSecondary,
+          tabBarActiveTintColor: colors.brandGreen,
+          tabBarInactiveTintColor: colors.textMuted,
           tabBarStyle: {
-            backgroundColor: colors.surface,
-            borderTopColor: colors.border,
-            borderTopWidth: 1,
+            backgroundColor: colors.bgCream,
+            borderTopColor: colors.borderDefault,
+            borderTopWidth: borders.default,
           },
           tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '500',
+            fontFamily: typography.bodyBold,
+            fontSize: 10,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
           },
           tabBarIcon: ({ color, size, focused }) => {
             let iconName: keyof typeof Ionicons.glyphMap;
@@ -53,7 +55,7 @@ export function AppNavigator() {
         <Tab.Screen
           name="ChatTab"
           component={ChatScreen}
-          options={{ tabBarLabel: 'Chat' }}
+          options={{ tabBarLabel: 'Caddy Bot' }}
         />
         <Tab.Screen
           name="CoursesTab"

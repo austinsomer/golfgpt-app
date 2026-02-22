@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../constants/theme';
+import { colors, spacing, radius, typography, borders } from '../constants/theme';
 
 export interface TeeTime {
   id: string;
@@ -18,7 +18,7 @@ interface Props {
 
 export function TeeTimeCard({ teeTime, onPress }: Props) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       <View style={styles.header}>
         <Text style={styles.courseName}>{teeTime.courseName}</Text>
         <Text style={styles.price}>{teeTime.price}</Text>
@@ -26,12 +26,9 @@ export function TeeTimeCard({ teeTime, onPress }: Props) {
       <View style={styles.meta}>
         <Text style={styles.time}>{teeTime.time}</Text>
         <View style={styles.tags}>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>{teeTime.players} players</Text>
-          </View>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>{teeTime.holes} holes</Text>
-          </View>
+          <Text style={styles.tag}>{teeTime.players} PLAYERS</Text>
+          <Text style={styles.tagDot}>·</Text>
+          <Text style={styles.tag}>{teeTime.holes} HOLES</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -41,17 +38,12 @@ export function TeeTimeCard({ teeTime, onPress }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderWidth: borders.default,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.sm,
     padding: spacing.md,
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
   },
   header: {
     flexDirection: 'row',
@@ -60,16 +52,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   courseName: {
+    fontFamily: typography.serif,
     fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
+    color: colors.textPrimary,
     flex: 1,
     marginRight: spacing.sm,
   },
   price: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.primary,
+    fontFamily: typography.bodyBold,
+    fontSize: 17,
+    color: colors.brandGreen,
   },
   meta: {
     flexDirection: 'row',
@@ -77,22 +69,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   time: {
-    fontSize: 14,
+    fontFamily: typography.body,
+    fontSize: 15,
     color: colors.textSecondary,
   },
   tags: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.xs,
   },
   tag: {
-    backgroundColor: '#E8F5EE',
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    fontFamily: typography.body,
+    fontSize: typography.caption.fontSize,
+    letterSpacing: typography.caption.letterSpacing,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
   },
-  tagText: {
+  tagDot: {
+    color: colors.borderDefault,
     fontSize: 12,
-    color: colors.primary,
-    fontWeight: '500',
   },
 });

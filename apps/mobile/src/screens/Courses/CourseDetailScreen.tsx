@@ -4,22 +4,21 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, spacing, radius } from '../../constants/theme';
+import { colors, spacing, radius, typography, borders } from '../../constants/theme';
 import { CoursesStackParamList } from '../../navigation/CoursesStack';
 
 type Props = NativeStackScreenProps<CoursesStackParamList, 'CourseDetail'>;
 
-function StatBox({ label, value }: { label: string; value: string }) {
+function StatRow({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.statBox}>
-      <Text style={styles.statValue}>{value}</Text>
+    <View style={styles.statRow}>
       <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue}>{value}</Text>
     </View>
   );
 }
@@ -28,51 +27,50 @@ export function CourseDetailScreen({ route }: Props) {
   const { course } = route.params;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Course name hero */}
         <View style={styles.heroSection}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="golf" size={36} color={colors.primary} />
-          </View>
+          <Text style={styles.countyLabel}>{course.county.toUpperCase()} COUNTY</Text>
           <Text style={styles.courseName}>{course.name}</Text>
-          <View style={styles.countyBadge}>
-            <Ionicons name="location-outline" size={14} color={colors.primary} />
-            <Text style={styles.countyText}>{course.county} County</Text>
-          </View>
         </View>
 
-        <View style={styles.statsRow}>
-          <StatBox label="Holes" value={String(course.holes)} />
+        <View style={styles.divider} />
+
+        {/* Stats — typographic, no card */}
+        <View style={styles.statsSection}>
+          <StatRow label="HOLES" value={String(course.holes)} />
           <View style={styles.statDivider} />
-          <StatBox label="Par" value={String(course.par)} />
+          <StatRow label="PAR" value={String(course.par)} />
           <View style={styles.statDivider} />
-          <StatBox label="Type" value="Public" />
+          <StatRow label="TYPE" value="PUBLIC" />
+          <View style={styles.statDivider} />
+          <StatRow label="PLATFORM" value="FOREUP" />
         </View>
 
+        <View style={styles.divider} />
+
+        {/* About */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionLabel}>ABOUT</Text>
           <Text style={styles.description}>{course.description}</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Booking Platform</Text>
-          <Text style={styles.platformText}>ForeUp</Text>
         </View>
       </ScrollView>
 
+      {/* Footer CTA */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.bookButton}
           onPress={() =>
             Alert.alert(
               'Book a Tee Time',
-              `This will open ${course.name}'s booking page. (In-app browser coming soon!)`,
-              [{ text: 'OK' }],
+              `Opens ${course.name}'s booking page. (In-app browser coming in Phase 2.)`,
+              [{ text: 'Got it' }],
             )
           }
+          activeOpacity={0.85}
         >
-          <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.bookButtonText}>Book a Tee Time</Text>
+          <Text style={styles.bookButtonText}>BOOK A TEE TIME</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -82,117 +80,95 @@ export function CourseDetailScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.bgCream,
   },
   heroSection: {
-    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#E8F5EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  courseName: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
+  countyLabel: {
+    fontFamily: typography.body,
+    fontSize: typography.caption.fontSize,
+    letterSpacing: typography.caption.letterSpacing,
+    color: colors.brandGreen,
+    textTransform: 'uppercase',
     marginBottom: spacing.sm,
   },
-  countyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  courseName: {
+    fontFamily: typography.serif,
+    fontSize: 28,
+    color: colors.textPrimary,
+    lineHeight: 34,
   },
-  countyText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
+  divider: {
+    height: borders.default,
+    backgroundColor: colors.borderDefault,
+    marginHorizontal: spacing.lg,
   },
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    marginTop: spacing.md,
+  statsSection: {
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginHorizontal: spacing.md,
-    borderRadius: radius.md,
   },
-  statBox: {
-    flex: 1,
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    paddingVertical: spacing.sm,
   },
   statDivider: {
-    width: 1,
-    backgroundColor: colors.border,
+    height: borders.default,
+    backgroundColor: colors.borderDefault,
+  },
+  statLabel: {
+    fontFamily: typography.body,
+    fontSize: typography.caption.fontSize,
+    letterSpacing: typography.caption.letterSpacing,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+  },
+  statValue: {
+    fontFamily: typography.bodyBold,
+    fontSize: typography.caption.fontSize,
+    letterSpacing: typography.caption.letterSpacing,
+    color: colors.textPrimary,
+    textTransform: 'uppercase',
   },
   section: {
-    margin: spacing.md,
-    padding: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
+  sectionLabel: {
+    fontFamily: typography.bodyBold,
+    fontSize: typography.sectionLabel.fontSize,
+    letterSpacing: typography.sectionLabel.letterSpacing,
+    color: colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
     marginBottom: spacing.sm,
   },
   description: {
-    fontSize: 15,
-    color: colors.text,
-    lineHeight: 22,
-  },
-  platformText: {
-    fontSize: 15,
-    color: colors.text,
-    fontWeight: '500',
+    fontFamily: typography.body,
+    fontSize: typography.bodyLg.fontSize,
+    color: colors.textSecondary,
+    lineHeight: 26,
   },
   footer: {
     padding: spacing.md,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopWidth: borders.default,
+    borderTopColor: colors.borderDefault,
+    backgroundColor: colors.bgCream,
   },
   bookButton: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
+    backgroundColor: colors.brandGreen,
+    borderRadius: radius.sm,
     padding: spacing.md,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
   },
   bookButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: typography.bodyBold,
+    fontSize: typography.button.fontSize,
+    letterSpacing: typography.button.letterSpacing,
+    color: colors.white,
+    textTransform: 'uppercase',
   },
 });

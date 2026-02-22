@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TeeTimeCard, TeeTime } from '../../components/TeeTimeCard';
-import { colors, spacing } from '../../constants/theme';
+import { colors, spacing, typography, borders } from '../../constants/theme';
 
 const MOCK_TEE_TIMES: TeeTime[] = [
   {
@@ -50,9 +51,10 @@ export function TeeTimesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.resultCount}>{MOCK_TEE_TIMES.length} tee times available</Text>
-        <Text style={styles.dateLabel}>Today · 2 players · All Counties</Text>
+        <Text style={styles.resultCount}>{MOCK_TEE_TIMES.length} available</Text>
+        <Text style={styles.filterSummary}>TODAY · 2 PLAYERS · ALL AREAS</Text>
       </View>
+      <View style={styles.headerDivider} />
       <FlatList
         data={MOCK_TEE_TIMES}
         keyExtractor={(item) => item.id}
@@ -74,25 +76,34 @@ export function TeeTimesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.bgCream,
   },
   header: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
   },
   resultCount: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: typography.serif,
+    fontSize: 22,
+    color: colors.textPrimary,
+    marginBottom: 2,
   },
-  dateLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 2,
+  filterSummary: {
+    fontFamily: typography.body,
+    fontSize: typography.caption.fontSize,
+    letterSpacing: typography.caption.letterSpacing,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+  },
+  headerDivider: {
+    height: borders.default,
+    backgroundColor: colors.borderDefault,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
   },
   list: {
     paddingTop: spacing.sm,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
 });

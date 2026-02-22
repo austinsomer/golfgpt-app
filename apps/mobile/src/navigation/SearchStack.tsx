@@ -2,7 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SearchScreen } from '../screens/Search/SearchScreen';
 import { TeeTimesScreen } from '../screens/Search/TeeTimesScreen';
-import { colors } from '../constants/theme';
+import { colors, typography } from '../constants/theme';
 
 export type SearchStackParamList = {
   Search: undefined;
@@ -15,9 +15,13 @@ export function SearchStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.primary,
-        headerTitleStyle: { fontWeight: '700', color: colors.text },
+        headerStyle: { backgroundColor: colors.bgCream },
+        headerTintColor: colors.brandGreen,
+        headerTitleStyle: {
+          fontFamily: typography.serif,
+          fontSize: 16,
+          color: colors.textPrimary,
+        },
         headerShadowVisible: false,
       }}
     >
@@ -29,7 +33,7 @@ export function SearchStack() {
       <Stack.Screen
         name="TeeTimes"
         component={TeeTimesScreen}
-        options={{ title: 'Available Tee Times' }}
+        options={{ title: 'Available Times', headerBackTitle: 'Back' }}
       />
     </Stack.Navigator>
   );
