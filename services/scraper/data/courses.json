@@ -1,0 +1,38 @@
+[
+  {
+    "id": "stonebridge_golf_club",
+    "name": "Stonebridge Golf Club",
+    "city": "West Valley City",
+    "county": "Salt Lake",
+    "holes": 27,
+    "bookingId": 21195,
+    "scheduleId": 7223,
+    "bookingUrl": "https://foreupsoftware.com/index.php/booking/21195/7223",
+    "platform": "foreup",
+    "verified": true
+  },
+  {
+    "id": "remuda_golf_course",
+    "name": "Remuda Golf Course",
+    "city": "Ogden",
+    "county": "Weber",
+    "holes": 18,
+    "bookingId": 1,
+    "scheduleId": 1,
+    "bookingUrl": "https://foreupsoftware.com/index.php/booking/1/1",
+    "platform": "foreup",
+    "verified": true
+  },
+  {
+    "id": "el_monte_golf_course",
+    "name": "El Monte Golf Course",
+    "city": "Ogden",
+    "county": "Weber",
+    "holes": 9,
+    "bookingId": 19197,
+    "scheduleId": 19197,
+    "bookingUrl": "https://foreupsoftware.com/index.php/booking/index/19197",
+    "platform": "foreup",
+    "verified": false
+  }
+]
