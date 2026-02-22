@@ -40,5 +40,5 @@
 - [ ] Custom scrapers for outliers (GUPPI)
 - [ ] Railway deployment + 20-min cron (GUPPI)
 - [ ] Data validation: 10+ courses spot-checked
-- [ ] Apply design system to mobile app shell (Ed)
-- [ ] Wire Supabase client into app (Ed)
+- [x] Apply design system to mobile app shell (Ed) — `570d72e`
+- [ ] Wire Supabase client into app (Ed) — blocked on course data from GUPPI
