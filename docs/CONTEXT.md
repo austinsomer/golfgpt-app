@@ -41,14 +41,14 @@
 - Supabase migrations 001–003 applied
 - County constraint covers: salt_lake, utah, summit, washington, weber, davis, cache + more
 
-### Phase 2 🔄 NEXT — App Shell + Polish
-- [ ] Skeleton loading screens (vs. ActivityIndicator spinners)
-- [ ] Search: date picker persists state on back-navigate
-- [ ] In-app browser (WebView) for booking redirect vs. system browser
-- [ ] Course detail: "next available" across multiple days, not just today
-- [ ] Empty state illustrations
+### Phase 2 ✅ DONE — App Shell + Polish
+- [x] Skeleton loading screens (vs. ActivityIndicator spinners)
+- [x] Search: date picker + collapsible filters, COMING UP quick-view
+- [x] In-app browser (expo-web-browser) (WebView) for booking redirect vs. system browser
+- [x] Course detail: multi-day navigator (14-day window), not just today
+- [x] Empty states (text)
 - [ ] Light/dark mode
-- [ ] Error boundary
+- [x] Error boundary
 
 ### Phase 3 — Caddy Bot AI (after Phase 2 polish)
 - [ ] Backend endpoint (Supabase Edge Function)
