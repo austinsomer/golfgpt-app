@@ -60,15 +60,9 @@ const rows = rawCourses.map((c) => ({
   active: c.verified !== false, // mark unverified courses as inactive
 }));
 
-// Filter to counties supported by current schema constraint.
-// After applying migration 003, remove this filter.
-const SUPPORTED_COUNTIES = ['salt_lake', 'utah', 'summit', 'washington'];
-const seedRows = rows.filter((r) => SUPPORTED_COUNTIES.includes(r.county));
-const skipped = rows.filter((r) => !SUPPORTED_COUNTIES.includes(r.county));
-if (skipped.length > 0) {
-  console.warn(`Skipping ${skipped.length} course(s) with unsupported county (apply migration 003 to fix):`);
-  skipped.forEach((r) => console.warn(`  - ${r.name} (county: ${r.county})`));
-}
+// Migration 003 applied — all Utah counties now supported
+const seedRows = rows;
+const skipped = [];
 
 console.log(`Seeding ${seedRows.length} course(s)...`);
 
