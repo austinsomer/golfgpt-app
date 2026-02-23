@@ -1,110 +1,104 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, typography, borders } from '../../constants/theme';
+import { getCourses } from '../../api/courses';
+import { Course, formatCounty } from '../../lib/database.types';
 import { CoursesStackParamList } from '../../navigation/CoursesStack';
 
-export interface Course {
-  id: string;
-  name: string;
-  county: string;
-  holes: number;
-  par: number;
-  description: string;
-  bookingUrl: string;
-}
-
-const MOCK_COURSES: Course[] = [
-  {
-    id: '1',
-    name: 'Bonneville Golf Course',
-    county: 'Salt Lake',
-    holes: 18,
-    par: 72,
-    description: 'A classic Salt Lake City municipal course with stunning Wasatch views.',
-    bookingUrl: 'https://example.com/bonneville',
-  },
-  {
-    id: '2',
-    name: 'Mountain Dell Golf Course',
-    county: 'Salt Lake',
-    holes: 36,
-    par: 71,
-    description: "Two 18-hole courses nestled in Parley's Canyon east of SLC.",
-    bookingUrl: 'https://example.com/mountain-dell',
-  },
-  {
-    id: '3',
-    name: 'River Oaks Golf Course',
-    county: 'Salt Lake',
-    holes: 18,
-    par: 71,
-    description: 'Affordable and walkable course in Sandy with nice mountain backdrops.',
-    bookingUrl: 'https://example.com/river-oaks',
-  },
-  {
-    id: '4',
-    name: 'Sleepy Ridge Golf Course',
-    county: 'Utah County',
-    holes: 18,
-    par: 72,
-    description: "Orem's premier public course with wide fairways and challenging greens.",
-    bookingUrl: 'https://example.com/sleepy-ridge',
-  },
-  {
-    id: '5',
-    name: 'Park City Golf Club',
-    county: 'Summit',
-    holes: 18,
-    par: 72,
-    description: 'High-altitude mountain golf with panoramic views of the Wasatch Back.',
-    bookingUrl: 'https://example.com/park-city',
-  },
-];
+// Re-export Course type so CoursesStack + CourseDetailScreen can import it from here
+export type { Course };
 
 type Props = {
   navigation: NativeStackNavigationProp<CoursesStackParamList, 'CourseList'>;
 };
 
 export function CourseListScreen({ navigation }: Props) {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getCourses();
+      setCourses(data);
+    } catch (err) {
+      setError('Could not load courses. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.heading}>UTAH COURSES</Text>
-        <Text style={styles.subheading}>{MOCK_COURSES.length} public courses · MVP scope</Text>
+        {!loading && !error && (
+          <Text style={styles.subheading}>
+            {courses.length} active course{courses.length !== 1 ? 's' : ''}
+          </Text>
+        )}
       </View>
       <View style={styles.divider} />
-      {/* Pure typographic list — no cards, per design system */}
-      <FlatList
-        data={MOCK_COURSES}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.courseRow}
-            onPress={() => navigation.navigate('CourseDetail', { course: item })}
-            activeOpacity={0.7}
-          >
-            <View style={styles.courseInfo}>
-              <Text style={styles.courseName}>{item.name.toUpperCase()}</Text>
-              <Text style={styles.courseMeta}>
-                {item.county.toUpperCase()} · {item.holes} HOLES · PAR {item.par}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.borderDefault} />
+
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator color={colors.brandGreen} size="large" />
+        </View>
+      ) : error ? (
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={load}>
+            <Text style={styles.retryText}>TRY AGAIN</Text>
           </TouchableOpacity>
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+        </View>
+      ) : (
+        <FlatList
+          data={courses}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.courseRow}
+              onPress={() => navigation.navigate('CourseDetail', { course: item })}
+              activeOpacity={0.7}
+            >
+              <View style={styles.courseInfo}>
+                <Text style={styles.courseName}>{item.name.toUpperCase()}</Text>
+                <Text style={styles.courseMeta}>
+                  {formatCounty(item.county).toUpperCase()}
+                  {item.holes ? ` · ${item.holes} HOLES` : ''}
+                  {item.par ? ` · PAR ${item.par}` : ''}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.borderDefault} />
+            </TouchableOpacity>
+          )}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.centered}>
+              <Text style={styles.emptyText}>No courses listed yet.</Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -141,6 +135,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: spacing.xxl,
+    flexGrow: 1,
   },
   courseRow: {
     flexDirection: 'row',
@@ -151,7 +146,6 @@ const styles = StyleSheet.create({
   courseInfo: {
     flex: 1,
   },
-  // Bold uppercase course name — per favorites list spec
   courseName: {
     fontFamily: typography.serif,
     fontSize: 15,
@@ -170,5 +164,37 @@ const styles = StyleSheet.create({
     height: borders.default,
     backgroundColor: colors.borderDefault,
     marginLeft: spacing.lg,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    paddingTop: spacing.xxl,
+  },
+  errorText: {
+    fontFamily: typography.body,
+    fontSize: 15,
+    color: colors.error,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    borderWidth: borders.active,
+    borderColor: colors.brandGreen,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: 4,
+  },
+  retryText: {
+    fontFamily: typography.bodyBold,
+    fontSize: typography.button.fontSize,
+    letterSpacing: typography.button.letterSpacing,
+    color: colors.brandGreen,
+  },
+  emptyText: {
+    fontFamily: typography.body,
+    fontSize: 14,
+    color: colors.textMuted,
   },
 });

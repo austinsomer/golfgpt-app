@@ -6,7 +6,11 @@ import { colors, typography } from '../constants/theme';
 
 export type SearchStackParamList = {
   Search: undefined;
-  TeeTimes: undefined;
+  TeeTimes: {
+    date: string;      // YYYY-MM-DD
+    players: number;
+    county: string | null;
+  };
 };
 
 const Stack = createNativeStackNavigator<SearchStackParamList>();

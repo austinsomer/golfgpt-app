@@ -5,11 +5,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Linking,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, spacing, radius, typography, borders } from '../../constants/theme';
+import { formatCounty } from '../../lib/database.types';
 import { CoursesStackParamList } from '../../navigation/CoursesStack';
 
 type Props = NativeStackScreenProps<CoursesStackParamList, 'CourseDetail'>;
@@ -26,48 +28,63 @@ function StatRow({ label, value }: { label: string; value: string }) {
 export function CourseDetailScreen({ route }: Props) {
   const { course } = route.params;
 
+  const openBooking = () => {
+    if (!course.booking_url) {
+      Alert.alert('No booking link available for this course.');
+      return;
+    }
+    Linking.openURL(course.booking_url).catch(() =>
+      Alert.alert('Could not open booking page.'),
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Course name hero */}
+        {/* Hero */}
         <View style={styles.heroSection}>
-          <Text style={styles.countyLabel}>{course.county.toUpperCase()} COUNTY</Text>
+          <Text style={styles.countyLabel}>
+            {formatCounty(course.county).toUpperCase()} COUNTY
+          </Text>
           <Text style={styles.courseName}>{course.name}</Text>
+          {course.address && (
+            <Text style={styles.address}>{course.address}</Text>
+          )}
         </View>
 
         <View style={styles.divider} />
 
-        {/* Stats — typographic, no card */}
+        {/* Stats */}
         <View style={styles.statsSection}>
-          <StatRow label="HOLES" value={String(course.holes)} />
-          <View style={styles.statDivider} />
-          <StatRow label="PAR" value={String(course.par)} />
-          <View style={styles.statDivider} />
+          {course.holes && <StatRow label="HOLES" value={String(course.holes)} />}
+          {course.holes && <View style={styles.statDivider} />}
+          {course.par && <StatRow label="PAR" value={String(course.par)} />}
+          {course.par && <View style={styles.statDivider} />}
           <StatRow label="TYPE" value="PUBLIC" />
-          <View style={styles.statDivider} />
-          <StatRow label="PLATFORM" value="FOREUP" />
+          {course.booking_platform && (
+            <>
+              <View style={styles.statDivider} />
+              <StatRow label="PLATFORM" value={course.booking_platform.toUpperCase()} />
+            </>
+          )}
         </View>
 
         <View style={styles.divider} />
 
-        {/* About */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>ABOUT</Text>
-          <Text style={styles.description}>{course.description}</Text>
-        </View>
+        {/* Description */}
+        {course.description && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>ABOUT</Text>
+            <Text style={styles.description}>{course.description}</Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Footer CTA */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.bookButton}
-          onPress={() =>
-            Alert.alert(
-              'Book a Tee Time',
-              `Opens ${course.name}'s booking page. (In-app browser coming in Phase 2.)`,
-              [{ text: 'Got it' }],
-            )
-          }
+          onPress={openBooking}
           activeOpacity={0.85}
         >
           <Text style={styles.bookButtonText}>BOOK A TEE TIME</Text>
@@ -100,6 +117,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: colors.textPrimary,
     lineHeight: 34,
+  },
+  address: {
+    fontFamily: typography.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
   divider: {
     height: borders.default,

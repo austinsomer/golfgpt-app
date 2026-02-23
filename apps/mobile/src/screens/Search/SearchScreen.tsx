@@ -85,7 +85,11 @@ export function SearchScreen({ navigation }: Props) {
 
         <TouchableOpacity
           style={styles.searchButton}
-          onPress={() => navigation.navigate('TeeTimes')}
+          onPress={() => navigation.navigate('TeeTimes', {
+            date: new Date().toISOString().split('T')[0],
+            players,
+            county: county === 'ALL' || !county ? null : county,
+          })}
           activeOpacity={0.85}
         >
           <Text style={styles.searchButtonText}>SEARCH TEE TIMES</Text>

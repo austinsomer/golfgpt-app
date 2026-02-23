@@ -1,74 +1,133 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Linking,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TeeTimeCard, TeeTime } from '../../components/TeeTimeCard';
+import {
+  searchTeeTimes,
+  getUpcomingTeeTimes,
+  TeeTimeResult,
+  formatPrice,
+  formatTeeTime,
+} from '../../api/teeTimes';
+import { formatCounty } from '../../lib/database.types';
 import { colors, spacing, typography, borders } from '../../constants/theme';
+import { SearchStackParamList } from '../../navigation/SearchStack';
 
-const MOCK_TEE_TIMES: TeeTime[] = [
-  {
-    id: '1',
-    courseName: 'Bonneville Golf Course',
-    time: '8:00 AM',
-    price: '$32',
-    players: 4,
-    holes: 18,
-  },
-  {
-    id: '2',
-    courseName: 'Mountain Dell Golf Course',
-    time: '9:30 AM',
-    price: '$45',
-    players: 2,
-    holes: 18,
-  },
-  {
-    id: '3',
-    courseName: 'River Oaks Golf Course',
-    time: '11:00 AM',
-    price: '$28',
-    players: 3,
-    holes: 18,
-  },
-  {
-    id: '4',
-    courseName: 'Wingpointe Golf Course',
-    time: '12:30 PM',
-    price: '$30',
-    players: 4,
-    holes: 18,
-  },
-  {
-    id: '5',
-    courseName: 'Stonebridge Golf Club',
-    time: '2:00 PM',
-    price: '$55',
-    players: 2,
-    holes: 18,
-  },
-];
+type Props = NativeStackScreenProps<SearchStackParamList, 'TeeTimes'>;
 
-export function TeeTimesScreen() {
+function toCardItem(result: TeeTimeResult): TeeTime {
+  return {
+    id: result.teeTime.id,
+    courseName: result.course?.name ?? 'Unknown Course',
+    time: formatTeeTime(result.teeTime.datetime),
+    price: formatPrice(result.teeTime.price),
+    players: result.teeTime.players_available ?? 4,
+    holes: result.course?.holes ?? 18,
+  };
+}
+
+function openBookingUrl(result: TeeTimeResult) {
+  const url = result.course?.booking_url;
+  if (!url) {
+    Alert.alert('No booking link available for this course.');
+    return;
+  }
+  Linking.openURL(url).catch(() =>
+    Alert.alert('Could not open booking page. Try visiting the course website directly.'),
+  );
+}
+
+export function TeeTimesScreen({ route }: Props) {
+  const { date, players, county } = route.params;
+
+  const [results, setResults] = useState<TeeTimeResult[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await searchTeeTimes({ date, players, county: county ?? undefined });
+      setResults(data);
+    } catch (err) {
+      setError('Could not load tee times. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [date, players, county]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const countyLabel = county
+    ? (formatCounty(county as Parameters<typeof formatCounty>[0]) ?? county)
+    : 'ALL AREAS';
+
+  const filterSummary = [
+    date === new Date().toISOString().split('T')[0] ? 'TODAY' : date,
+    `${players} PLAYER${players !== 1 ? 'S' : ''}`,
+    countyLabel.toUpperCase(),
+  ].join(' · ');
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.resultCount}>{MOCK_TEE_TIMES.length} available</Text>
-        <Text style={styles.filterSummary}>TODAY · 2 PLAYERS · ALL AREAS</Text>
-      </View>
-      <View style={styles.headerDivider} />
-      <FlatList
-        data={MOCK_TEE_TIMES}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TeeTimeCard
-            teeTime={item}
-            onPress={() => {
-              // TODO: open course booking URL in in-app browser
-            }}
-          />
-        )}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator color={colors.brandGreen} size="large" />
+          <Text style={styles.loadingText}>Checking availability...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={load}>
+            <Text style={styles.retryText}>TRY AGAIN</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          <View style={styles.header}>
+            <Text style={styles.resultCount}>
+              {results.length === 0 ? 'No times available' : `${results.length} available`}
+            </Text>
+            <Text style={styles.filterSummary}>{filterSummary}</Text>
+          </View>
+          <View style={styles.headerDivider} />
+          {results.length === 0 ? (
+            <View style={styles.centered}>
+              <Text style={styles.emptyTitle}>No tee times found</Text>
+              <Text style={styles.emptyBody}>
+                Try a different date or expand your search filters.
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={results}
+              keyExtractor={(item) => item.teeTime.id}
+              renderItem={({ item }) => (
+                <TeeTimeCard
+                  teeTime={toCardItem(item)}
+                  onPress={() => openBookingUrl(item)}
+                />
+              )}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+        </>
+      )}
     </SafeAreaView>
   );
 }
@@ -105,5 +164,52 @@ const styles = StyleSheet.create({
   list: {
     paddingTop: spacing.sm,
     paddingBottom: spacing.xxl,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  loadingText: {
+    fontFamily: typography.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: spacing.md,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  errorText: {
+    fontFamily: typography.body,
+    fontSize: 15,
+    color: colors.error,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    borderWidth: borders.active,
+    borderColor: colors.brandGreen,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: 4,
+  },
+  retryText: {
+    fontFamily: typography.bodyBold,
+    fontSize: typography.button.fontSize,
+    letterSpacing: typography.button.letterSpacing,
+    color: colors.brandGreen,
+  },
+  emptyTitle: {
+    fontFamily: typography.serif,
+    fontSize: 20,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  emptyBody: {
+    fontFamily: typography.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

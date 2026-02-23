@@ -2,22 +2,44 @@
 // Source: services/supabase/migrations/001_initial_schema.sql
 // Regenerate with: npx supabase gen types typescript --project-id opzqsxrfqasqadnjdgop
 
+export type County =
+  | 'salt_lake'
+  | 'utah'
+  | 'summit'
+  | 'washington'
+  | 'weber'
+  | 'davis'
+  | 'cache'
+  | 'box_elder'
+  | 'tooele'
+  | 'iron'
+  | 'kane';
+
+export type BookingPlatform =
+  | 'foreup'
+  | 'lightspeed'
+  | 'chronogolf'
+  | 'ezlinks'
+  | 'teeup'
+  | 'custom'
+  | 'unknown';
+
 export type Database = {
   public: {
     Tables: {
       courses: {
         Row: {
-          id: number;
+          id: string;              // UUID
           name: string;
-          county: string;
+          county: County;
           address: string | null;
           lat: number | null;
           lng: number | null;
-          holes: number | null;
+          holes: 9 | 18 | 27 | 36 | null;
           par: number | null;
           website_url: string | null;
           booking_url: string | null;
-          booking_platform: string | null;
+          booking_platform: BookingPlatform | null;
           phone: string | null;
           description: string | null;
           active: boolean;
@@ -29,11 +51,11 @@ export type Database = {
       };
       tee_times: {
         Row: {
-          id: number;
-          course_id: number;
-          datetime: string;
-          players_available: number | null;
-          price: number | null;
+          id: string;              // UUID
+          course_id: string;       // UUID → courses.id
+          datetime: string;        // ISO timestamp
+          players_available: 1 | 2 | 3 | 4 | null;
+          price: number | null;    // decimal dollars
           holes: number | null;
           scraped_at: string;
           expires_at: string;
@@ -43,8 +65,8 @@ export type Database = {
       };
       scraper_runs: {
         Row: {
-          id: number;
-          course_id: number;
+          id: string;              // UUID
+          course_id: string;       // UUID
           started_at: string;
           finished_at: string | null;
           status: string;
@@ -62,3 +84,22 @@ export type Database = {
 export type Course = Database['public']['Tables']['courses']['Row'];
 export type TeeTimeRow = Database['public']['Tables']['tee_times']['Row'];
 export type ScraperRun = Database['public']['Tables']['scraper_runs']['Row'];
+
+// County display names (snake_case → human readable)
+export const COUNTY_DISPLAY: Record<County, string> = {
+  salt_lake: 'Salt Lake',
+  utah: 'Utah County',
+  summit: 'Summit',
+  washington: 'Washington',
+  weber: 'Weber',
+  davis: 'Davis',
+  cache: 'Cache',
+  box_elder: 'Box Elder',
+  tooele: 'Tooele',
+  iron: 'Iron',
+  kane: 'Kane',
+};
+
+export function formatCounty(county: County): string {
+  return COUNTY_DISPLAY[county] ?? county;
+}
