@@ -10,6 +10,7 @@ export type SearchStackParamList = {
     date: string;      // YYYY-MM-DD
     players: number;
     county: string | null;
+    timeOfDay: 'morning' | 'afternoon' | null;
   };
 };
 

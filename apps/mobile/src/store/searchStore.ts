@@ -1,12 +1,16 @@
 import { create } from 'zustand';
 
+export type TimeOfDay = 'morning' | 'afternoon' | null;
+
 interface SearchState {
   date: Date;
   players: number;
   county: string | null;
+  timeOfDay: TimeOfDay;
   setDate: (date: Date) => void;
   setPlayers: (n: number) => void;
   setCounty: (county: string | null) => void;
+  setTimeOfDay: (t: TimeOfDay) => void;
   reset: () => void;
 }
 
@@ -20,8 +24,10 @@ export const useSearchStore = create<SearchState>((set) => ({
   date: today(),
   players: 2,
   county: null,
+  timeOfDay: null,
   setDate: (date) => set({ date }),
   setPlayers: (players) => set({ players }),
   setCounty: (county) => set({ county }),
-  reset: () => set({ date: today(), players: 2, county: null }),
+  setTimeOfDay: (timeOfDay) => set({ timeOfDay }),
+  reset: () => set({ date: today(), players: 2, county: null, timeOfDay: null }),
 }));

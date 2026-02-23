@@ -51,7 +51,7 @@ function QuickTeeTime({ result }: { result: TeeTimeResult }) {
 }
 
 export function SearchScreen({ navigation }: Props) {
-  const { date, players, county, setDate, setPlayers, setCounty } = useSearchStore();
+  const { date, players, county, timeOfDay, setDate, setPlayers, setCounty, setTimeOfDay } = useSearchStore();
   const [filtersExpanded, setFiltersExpanded] = useState(true);
 
   const [counties, setCounties] = useState<string[]>([]);
@@ -89,6 +89,7 @@ export function SearchScreen({ navigation }: Props) {
       date: date.toISOString().split('T')[0],
       players,
       county: !county || county === 'All' ? null : county,
+      timeOfDay: timeOfDay ?? null,
     });
   };
 
@@ -194,6 +195,32 @@ export function SearchScreen({ navigation }: Props) {
                     </Text>
                   </TouchableOpacity>
                 ))}
+              </View>
+            </View>
+
+            {/* Time of Day */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterLabel}>TIME</Text>
+              <View style={styles.playerGrid}>
+                {(['morning', 'afternoon', null] as const).map((option, i) => {
+                  const label = option === 'morning' ? 'MORNING' : option === 'afternoon' ? 'AFTERNOON' : 'ANY';
+                  const isActive = timeOfDay === option;
+                  return (
+                    <TouchableOpacity
+                      key={label}
+                      style={[
+                        styles.playerCell,
+                        i === 0 && styles.playerCellFirst,
+                        isActive && styles.playerCellActive,
+                      ]}
+                      onPress={() => setTimeOfDay(option)}
+                    >
+                      <Text style={[styles.playerCellText, isActive && styles.playerCellTextActive]}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
 

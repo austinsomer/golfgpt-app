@@ -37,7 +37,10 @@ function toCardItem(result: TeeTimeResult): TeeTime {
 const SKELETON_COUNT = 5;
 
 export function TeeTimesScreen({ route }: Props) {
-  const { date, players, county } = route.params;
+  const { date, players, county, timeOfDay } = route.params;
+
+  const timeFrom = timeOfDay === 'morning' ? '00:00' : timeOfDay === 'afternoon' ? '12:00' : undefined;
+  const timeTo   = timeOfDay === 'morning' ? '11:59' : timeOfDay === 'afternoon' ? '23:59' : undefined;
 
   const [results, setResults] = useState<TeeTimeResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,14 +50,14 @@ export function TeeTimesScreen({ route }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const data = await searchTeeTimes({ date, players, county: county ?? undefined });
+      const data = await searchTeeTimes({ date, players, county: county ?? undefined, timeFrom, timeTo });
       setResults(data);
     } catch {
       setError('Could not load tee times. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [date, players, county]);
+  }, [date, players, county, timeFrom, timeTo]);
 
   useEffect(() => {
     load();
@@ -67,8 +70,9 @@ export function TeeTimesScreen({ route }: Props) {
   const filterSummary = [
     date === new Date().toISOString().split('T')[0] ? 'TODAY' : date,
     `${players} PLAYER${players !== 1 ? 'S' : ''}`,
+    timeOfDay ? timeOfDay.toUpperCase() : null,
     countyLabel.toUpperCase(),
-  ].join(' · ');
+  ].filter(Boolean).join(' · ');
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
