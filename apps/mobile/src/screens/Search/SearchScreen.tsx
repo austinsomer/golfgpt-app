@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -96,7 +97,11 @@ export function SearchScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>UTAH TEE-UP</Text>
+          <Image
+            source={require('../../../assets/the-loop-wordmark.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.tagline}>FIND YOUR FAIRWAY</Text>
         </View>
 
@@ -240,12 +245,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bgCream },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   header: { alignItems: 'center', paddingVertical: spacing.lg },
-  logo: {
-    fontFamily: typography.serif,
-    fontSize: typography.logo.fontSize,
-    letterSpacing: typography.logo.letterSpacing,
-    color: colors.textPrimary,
-    textTransform: 'uppercase',
+  logoImage: {
+    width: 220,
+    height: 220 / (2016 / 1134), // maintain aspect ratio
+    marginBottom: spacing.xs,
   },
   tagline: {
     fontFamily: typography.body,
