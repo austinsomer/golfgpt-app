@@ -5,19 +5,33 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Linking,
-  Alert,
-  ActivityIndicator,
-  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, borders } from '../../constants/theme';
 import { formatCounty } from '../../lib/database.types';
 import { CoursesStackParamList } from '../../navigation/CoursesStack';
 import { searchTeeTimes, TeeTimeResult, formatTeeTime, formatPrice } from '../../api/teeTimes';
+import { Skeleton } from '../../components/Skeleton';
+import { openInApp } from '../../lib/browser';
 
 type Props = NativeStackScreenProps<CoursesStackParamList, 'CourseDetail'>;
+
+function toDateString(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+function formatDayLabel(date: Date): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -28,64 +42,70 @@ function StatRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function TeeTimeSlot({
-  result,
-  onPress,
-}: {
-  result: TeeTimeResult;
-  onPress: () => void;
-}) {
-  const { teeTime } = result;
+function SlotRow({ result }: { result: TeeTimeResult }) {
   return (
-    <TouchableOpacity style={styles.slotRow} onPress={onPress} activeOpacity={0.8}>
-      <Text style={styles.slotTime}>{formatTeeTime(teeTime.datetime)}</Text>
+    <TouchableOpacity
+      style={styles.slotRow}
+      onPress={() => openInApp(result.course?.booking_url)}
+      activeOpacity={0.8}
+    >
+      <Text style={styles.slotTime}>{formatTeeTime(result.teeTime.datetime)}</Text>
       <View style={styles.slotMeta}>
-        {teeTime.players_available && (
-          <Text style={styles.slotTag}>{teeTime.players_available} SPOTS</Text>
+        {result.teeTime.players_available != null && (
+          <Text style={styles.slotTag}>{result.teeTime.players_available} SPOTS</Text>
         )}
-        {teeTime.holes && (
-          <Text style={styles.slotTag}>{teeTime.holes} HLS</Text>
+        {result.teeTime.holes != null && (
+          <Text style={styles.slotTag}>{result.teeTime.holes} HLS</Text>
         )}
       </View>
-      <Text style={styles.slotPrice}>{formatPrice(teeTime.price)}</Text>
+      <Text style={styles.slotPrice}>{formatPrice(result.teeTime.price)}</Text>
     </TouchableOpacity>
   );
 }
 
 export function CourseDetailScreen({ route }: Props) {
   const { course } = route.params;
-  const today = new Date().toISOString().split('T')[0];
 
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
   const [teeTimes, setTeeTimes] = useState<TeeTimeResult[]>([]);
-  const [teeTimesLoading, setTeeTimesLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const maxDate = new Date(today);
+  maxDate.setDate(today.getDate() + 13);
+
+  const canGoPrev = selectedDate > today;
+  const canGoNext = selectedDate < maxDate;
+
+  const shiftDate = (days: number) => {
+    const next = new Date(selectedDate);
+    next.setDate(selectedDate.getDate() + days);
+    setSelectedDate(next);
+  };
 
   const loadTeeTimes = useCallback(async () => {
-    setTeeTimesLoading(true);
+    setLoading(true);
     try {
-      const results = await searchTeeTimes({ date: today, players: 1 });
-      // Filter to this course only
+      const results = await searchTeeTimes({
+        date: toDateString(selectedDate),
+        players: 1,
+      });
       setTeeTimes(results.filter((r) => r.course?.id === course.id));
     } catch {
       setTeeTimes([]);
     } finally {
-      setTeeTimesLoading(false);
+      setLoading(false);
     }
-  }, [course.id, today]);
+  }, [course.id, selectedDate]);
 
   useEffect(() => {
     loadTeeTimes();
   }, [loadTeeTimes]);
-
-  const openBooking = (url?: string | null) => {
-    const target = url ?? course.booking_url;
-    if (!target) {
-      Alert.alert('No booking link available for this course.');
-      return;
-    }
-    Linking.openURL(target).catch(() =>
-      Alert.alert('Could not open booking page.'),
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -96,52 +116,85 @@ export function CourseDetailScreen({ route }: Props) {
             {formatCounty(course.county).toUpperCase()} COUNTY
           </Text>
           <Text style={styles.courseName}>{course.name}</Text>
-          {course.address && (
-            <Text style={styles.address}>{course.address}</Text>
-          )}
+          {course.address && <Text style={styles.address}>{course.address}</Text>}
         </View>
 
         <View style={styles.divider} />
 
         {/* Stats */}
         <View style={styles.statsSection}>
-          {course.holes && <StatRow label="HOLES" value={String(course.holes)} />}
-          {course.holes && <View style={styles.statDivider} />}
-          {course.par && <StatRow label="PAR" value={String(course.par)} />}
-          {course.par && <View style={styles.statDivider} />}
+          {course.holes != null && (
+            <><StatRow label="HOLES" value={String(course.holes)} /><View style={styles.statDivider} /></>
+          )}
+          {course.par != null && (
+            <><StatRow label="PAR" value={String(course.par)} /><View style={styles.statDivider} /></>
+          )}
           <StatRow label="TYPE" value="PUBLIC" />
           {course.booking_platform && (
-            <>
-              <View style={styles.statDivider} />
-              <StatRow label="PLATFORM" value={course.booking_platform.toUpperCase()} />
-            </>
+            <><View style={styles.statDivider} /><StatRow label="PLATFORM" value={course.booking_platform.toUpperCase()} /></>
           )}
         </View>
 
         <View style={styles.divider} />
 
-        {/* Today's tee times */}
+        {/* Tee time availability with day navigator */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>AVAILABLE TODAY</Text>
+          {/* Day navigator */}
+          <View style={styles.dayNav}>
+            <TouchableOpacity
+              style={[styles.navArrow, !canGoPrev && styles.navArrowDisabled]}
+              onPress={() => canGoPrev && shiftDate(-1)}
+              disabled={!canGoPrev}
+            >
+              <Ionicons name="chevron-back" size={18} color={canGoPrev ? colors.brandGreen : colors.borderDefault} />
+            </TouchableOpacity>
 
-          {teeTimesLoading ? (
-            <ActivityIndicator color={colors.brandGreen} style={{ marginVertical: spacing.md }} />
+            <View style={styles.dayLabelWrap}>
+              <Text style={styles.dayLabel}>{formatDayLabel(selectedDate)}</Text>
+              {formatDayLabel(selectedDate) !== toDateString(selectedDate) && (
+                <Text style={styles.dayDate}>
+                  {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </Text>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.navArrow, !canGoNext && styles.navArrowDisabled]}
+              onPress={() => canGoNext && shiftDate(1)}
+              disabled={!canGoNext}
+            >
+              <Ionicons name="chevron-forward" size={18} color={canGoNext ? colors.brandGreen : colors.borderDefault} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Slot list */}
+          {loading ? (
+            <View style={styles.skeletonList}>
+              {Array(4).fill(null).map((_, i) => (
+                <React.Fragment key={i}>
+                  <View style={styles.skeletonSlot}>
+                    <Skeleton width={60} height={13} />
+                    <Skeleton width={80} height={11} />
+                    <Skeleton width={35} height={13} />
+                  </View>
+                  {i < 3 && <View style={styles.slotDivider} />}
+                </React.Fragment>
+              ))}
+            </View>
           ) : teeTimes.length === 0 ? (
-            <Text style={styles.noTimesText}>No tee times available today.</Text>
+            <Text style={styles.noTimesText}>No tee times available this day.</Text>
           ) : (
             <View style={styles.slotList}>
               {teeTimes.slice(0, 8).map((result, i) => (
                 <React.Fragment key={result.teeTime.id}>
-                  <TeeTimeSlot result={result} onPress={() => openBooking(result.course?.booking_url)} />
-                  {i < Math.min(teeTimes.length, 8) - 1 && (
-                    <View style={styles.slotDivider} />
-                  )}
+                  <SlotRow result={result} />
+                  {i < Math.min(teeTimes.length, 8) - 1 && <View style={styles.slotDivider} />}
                 </React.Fragment>
               ))}
               {teeTimes.length > 8 && (
                 <TouchableOpacity
                   style={styles.showMoreRow}
-                  onPress={() => openBooking()}
+                  onPress={() => openInApp(course.booking_url)}
                 >
                   <Text style={styles.showMoreText}>
                     +{teeTimes.length - 8} MORE — VIEW ALL ON FOREUP ›
@@ -164,11 +217,10 @@ export function CourseDetailScreen({ route }: Props) {
         )}
       </ScrollView>
 
-      {/* Footer CTA */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.bookButton}
-          onPress={() => openBooking()}
+          onPress={() => openInApp(course.booking_url)}
           activeOpacity={0.85}
         >
           <Text style={styles.bookButtonText}>BOOK ON FOREUP</Text>
@@ -179,10 +231,7 @@ export function CourseDetailScreen({ route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bgCream,
-  },
+  container: { flex: 1, backgroundColor: colors.bgCream },
   heroSection: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
@@ -220,13 +269,9 @@ const styles = StyleSheet.create({
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingVertical: spacing.sm,
   },
-  statDivider: {
-    height: borders.default,
-    backgroundColor: colors.borderDefault,
-  },
+  statDivider: { height: borders.default, backgroundColor: colors.borderDefault },
   statLabel: {
     fontFamily: typography.body,
     fontSize: typography.caption.fontSize,
@@ -253,6 +298,43 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: spacing.sm,
   },
+  // Day navigator
+  dayNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  navArrow: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: borders.default,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+  },
+  navArrowDisabled: {
+    opacity: 0.4,
+  },
+  dayLabelWrap: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  dayLabel: {
+    fontFamily: typography.serif,
+    fontSize: 17,
+    color: colors.textPrimary,
+  },
+  dayDate: {
+    fontFamily: typography.body,
+    fontSize: typography.caption.fontSize,
+    letterSpacing: 0.5,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    marginTop: 1,
+  },
+  // Slot list
   noTimesText: {
     fontFamily: typography.body,
     fontSize: 14,
@@ -265,12 +347,26 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     overflow: 'hidden',
   },
+  skeletonList: {
+    borderWidth: borders.default,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+  },
   slotRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
     backgroundColor: colors.surface,
+  },
+  skeletonSlot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
   slotTime: {
     fontFamily: typography.bodyBold,
@@ -295,10 +391,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.brandGreen,
   },
-  slotDivider: {
-    height: borders.default,
-    backgroundColor: colors.borderDefault,
-  },
+  slotDivider: { height: borders.default, backgroundColor: colors.borderDefault },
   showMoreRow: {
     padding: spacing.md,
     alignItems: 'center',

@@ -4,22 +4,20 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
   TouchableOpacity,
-  Linking,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TeeTimeCard, TeeTime } from '../../components/TeeTimeCard';
+import { SkeletonTeeTimeCard } from '../../components/Skeleton';
 import {
   searchTeeTimes,
-  getUpcomingTeeTimes,
   TeeTimeResult,
   formatPrice,
   formatTeeTime,
 } from '../../api/teeTimes';
 import { formatCounty } from '../../lib/database.types';
+import { openInApp } from '../../lib/browser';
 import { colors, spacing, typography, borders } from '../../constants/theme';
 import { SearchStackParamList } from '../../navigation/SearchStack';
 
@@ -36,16 +34,7 @@ function toCardItem(result: TeeTimeResult): TeeTime {
   };
 }
 
-function openBookingUrl(result: TeeTimeResult) {
-  const url = result.course?.booking_url;
-  if (!url) {
-    Alert.alert('No booking link available for this course.');
-    return;
-  }
-  Linking.openURL(url).catch(() =>
-    Alert.alert('Could not open booking page. Try visiting the course website directly.'),
-  );
-}
+const SKELETON_COUNT = 5;
 
 export function TeeTimesScreen({ route }: Props) {
   const { date, players, county } = route.params;
@@ -60,9 +49,8 @@ export function TeeTimesScreen({ route }: Props) {
     try {
       const data = await searchTeeTimes({ date, players, county: county ?? undefined });
       setResults(data);
-    } catch (err) {
+    } catch {
       setError('Could not load tee times. Please try again.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -84,11 +72,22 @@ export function TeeTimesScreen({ route }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.header}>
+        <Text style={styles.resultCount}>
+          {loading ? 'Searching...' : error ? 'Error' : results.length === 0 ? 'No times found' : `${results.length} available`}
+        </Text>
+        <Text style={styles.filterSummary}>{filterSummary}</Text>
+      </View>
+      <View style={styles.headerDivider} />
+
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.brandGreen} size="large" />
-          <Text style={styles.loadingText}>Checking availability...</Text>
-        </View>
+        <FlatList
+          data={Array(SKELETON_COUNT).fill(null)}
+          keyExtractor={(_, i) => String(i)}
+          renderItem={() => <SkeletonTeeTimeCard />}
+          contentContainerStyle={styles.list}
+          scrollEnabled={false}
+        />
       ) : error ? (
         <View style={styles.centered}>
           <Text style={styles.errorText}>{error}</Text>
@@ -96,47 +95,33 @@ export function TeeTimesScreen({ route }: Props) {
             <Text style={styles.retryText}>TRY AGAIN</Text>
           </TouchableOpacity>
         </View>
+      ) : results.length === 0 ? (
+        <View style={styles.centered}>
+          <Text style={styles.emptyTitle}>No tee times found</Text>
+          <Text style={styles.emptyBody}>
+            Try a different date, more players, or expand to all areas.
+          </Text>
+        </View>
       ) : (
-        <>
-          <View style={styles.header}>
-            <Text style={styles.resultCount}>
-              {results.length === 0 ? 'No times available' : `${results.length} available`}
-            </Text>
-            <Text style={styles.filterSummary}>{filterSummary}</Text>
-          </View>
-          <View style={styles.headerDivider} />
-          {results.length === 0 ? (
-            <View style={styles.centered}>
-              <Text style={styles.emptyTitle}>No tee times found</Text>
-              <Text style={styles.emptyBody}>
-                Try a different date or expand your search filters.
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={results}
-              keyExtractor={(item) => item.teeTime.id}
-              renderItem={({ item }) => (
-                <TeeTimeCard
-                  teeTime={toCardItem(item)}
-                  onPress={() => openBookingUrl(item)}
-                />
-              )}
-              contentContainerStyle={styles.list}
-              showsVerticalScrollIndicator={false}
+        <FlatList
+          data={results}
+          keyExtractor={(item) => item.teeTime.id}
+          renderItem={({ item }) => (
+            <TeeTimeCard
+              teeTime={toCardItem(item)}
+              onPress={() => openInApp(item.course?.booking_url)}
             />
           )}
-        </>
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+        />
       )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bgCream,
-  },
+  container: { flex: 1, backgroundColor: colors.bgCream },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -161,23 +146,12 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
   },
-  list: {
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xxl,
-  },
+  list: { paddingTop: spacing.sm, paddingBottom: spacing.xxl },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xl,
-  },
-  loadingText: {
-    fontFamily: typography.body,
-    fontSize: 14,
-    color: colors.textMuted,
-    marginTop: spacing.md,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
   errorText: {
     fontFamily: typography.body,

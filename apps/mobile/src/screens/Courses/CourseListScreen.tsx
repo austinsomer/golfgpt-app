@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +12,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, typography, borders } from '../../constants/theme';
 import { getCourses } from '../../api/courses';
 import { Course, formatCounty } from '../../lib/database.types';
+import { SkeletonCourseRow } from '../../components/Skeleton';
 import { CoursesStackParamList } from '../../navigation/CoursesStack';
 
 // Re-export Course type so CoursesStack + CourseDetailScreen can import it from here
@@ -58,9 +58,9 @@ export function CourseListScreen({ navigation }: Props) {
       <View style={styles.divider} />
 
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.brandGreen} size="large" />
-        </View>
+        <>
+          {Array(8).fill(null).map((_, i) => <SkeletonCourseRow key={i} />)}
+        </>
       ) : error ? (
         <View style={styles.centered}>
           <Text style={styles.errorText}>{error}</Text>

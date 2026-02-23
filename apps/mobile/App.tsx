@@ -13,6 +13,7 @@ import {
   Lora_400Regular_Italic,
 } from '@expo-google-fonts/lora';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { colors } from './src/constants/theme';
 
 export default function App() {
@@ -34,9 +35,9 @@ export default function App() {
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <StatusBar style="dark" />
       <AppNavigator />
-    </>
+    </ErrorBoundary>
   );
 }
