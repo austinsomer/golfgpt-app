@@ -43,11 +43,14 @@
   - `services/supabase/migrations/002_courses_unique_booking_url.sql`
   - `services/supabase/migrations/003_expand_county_constraint.sql`
   - Then GUPPI re-runs seed to add Weber county courses
-- [ ] Expand course catalog to ~60-80 courses (GUPPI)
+- [x] Expand course catalog — 17 active Utah ForeUp courses seeded (GUPPI)
+  - Salt Lake: 8, Utah County: 5, Weber: 4
+  - 432+ tee times across 7-day lookahead
+- [x] Date picker, dynamic county filter, inline tee times on CourseDetail (Ed) — `ddc3572`
+- [ ] Railway deployment + 20-min cron (GUPPI) — **next milestone**
 - [ ] Lightspeed/Chronogolf scraper (GUPPI)
 - [ ] Custom scrapers for outliers (GUPPI)
-- [ ] Railway deployment + 20-min cron (GUPPI)
-- [ ] Data validation: 10+ courses spot-checked
+- [ ] Data validation ongoing as catalog expands
 - [ ] RLS on Supabase tables (before public launch)
 
 ### Phase 2 — App Shell + Polish (next after Phase 1 data is solid)
