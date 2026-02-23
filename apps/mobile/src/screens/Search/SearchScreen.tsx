@@ -102,7 +102,7 @@ export function SearchScreen({ navigation }: Props) {
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <Text style={styles.tagline}>FIND YOUR FAIRWAY</Text>
+          <Text style={styles.tagline}>NO VELVET ROPES.</Text>
         </View>
 
         <View style={styles.divider} />
