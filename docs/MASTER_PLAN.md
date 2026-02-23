@@ -79,7 +79,7 @@ Migration file: `services/supabase/migrations/001_initial_schema.sql`
 
 ## Build Roadmap
 
-### ✅ Phase 0 — Foundation (DONE)
+### ✅ Phase 0 — Foundation (DONE 2026-02-22)
 - [x] GitHub repo created and scaffolded
 - [x] Full doc structure (SPEC, CONTEXT, OPEN_QUESTIONS, AGENT_ROLES, ADR-001)
 - [x] Supabase project created, migration SQL written
@@ -130,10 +130,11 @@ Migration file: `services/supabase/migrations/001_initial_schema.sql`
 
 ## Current Status
 
-**Phase:** 0 complete / Phase 1 starting  
-**Blocker:** Supabase migration (Austin runs SQL in dashboard)  
-**GUPPI next:** Scraping infrastructure + course catalog research (unblocked once migration runs)  
-**Ed next:** Apply design system to app shell, prep for real data wiring
+**Phase:** 4 — Launch Prep  
+**Completed today (2026-02-22):** Phases 1, 2, and 3 in a single session  
+**App state:** Fully functional — 17 courses, live Supabase data, Railway 20-min cron, Caddy Bot AI  
+**GUPPI next:** Lightspeed/Chronogolf scraper (more courses); support launch prep  
+**Ed next:** Apple Developer account + TestFlight (Austin reminder 1pm 2026-02-23), app name/bundle ID, store assets
 
 See `docs/CONTEXT.md` for live agent status.  
 See `docs/OPEN_QUESTIONS.md` for decisions that need Austin's input.

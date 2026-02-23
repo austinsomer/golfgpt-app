@@ -1,21 +1,21 @@
 # CONTEXT.md — Project State
 
 ## Project
-**Phase:** 2 — App Shell + Polish
-**Last stable:** Phase 1 complete — Railway cron live, app self-sustaining
+**Phase:** 4 — Launch Prep
+**Last stable:** Phase 3 complete — Caddy Bot AI live, full end-to-end app working
 
 ---
 
 ## GUPPI
-**Working on:** Phase 2 planning / more course coverage
+**Working on:** Standby / course catalog expansion (Lightspeed/Chronogolf)
 **Status:** Standby
-**Next:** Lightspeed/Chronogolf scraper when ready to expand beyond ForeUp
+**Next:** Lightspeed/Chronogolf scraper to expand beyond 17 ForeUp courses; support Phase 4 launch prep
 **Last updated:** 2026-02-22
 
 ## Ed
-**Working on:** Phase 2 — polish, skeleton screens, Phase 3 AI prep
+**Working on:** Phase 4 — Launch Prep
 **Status:** Active
-**Next:** Skeleton loading states, search date persistence, Phase 2 backlog
+**Next:** Apple Developer account + TestFlight (Austin reminder set for 1pm tomorrow), app name/bundle ID, app store assets
 **Last updated:** 2026-02-22
 
 ---
@@ -50,12 +50,13 @@
 - [ ] Light/dark mode
 - [x] Error boundary
 
-### Phase 3 — Caddy Bot AI (after Phase 2 polish)
-- [ ] Backend endpoint (Supabase Edge Function)
-- [ ] OpenAI function-calling: natural language → searchTeeTimes() params
-- [ ] Chat screen wired to real search results
-- [ ] Suggestion chips trigger real searches
-- [ ] Follow-up conversation context (last 10 turns)
+### Phase 3 ✅ DONE — Caddy Bot AI
+- [x] Supabase Edge Function `chat-query` deployed
+- [x] OpenAI GPT-4o-mini function-calling: natural language → searchTeeTimes() params
+- [x] ChatScreen wired to real Edge Function + result cards
+- [x] Suggestion chips trigger real searches
+- [x] Follow-up conversation context (last 10 turns)
+- [x] OpenAI key set as Supabase secret
 
 ### Phase 4 — Launch Prep
 - [ ] Finalize app name + bundle ID (see OPEN_QUESTIONS.md)
