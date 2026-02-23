@@ -6,12 +6,13 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "eas-build-post-install": "if [ -n \"$IOS_DIST_P12\" ] && [ -n \"$IOS_DIST_MOBILEPROVISION\" ]; then mkdir -p certs && cp \"$IOS_DIST_P12\" certs/ios_dist.p12 && cp \"$IOS_DIST_MOBILEPROVISION\" certs/ios_dist.mobileprovision && echo 'Certs reconstructed from EAS secrets'; fi"
   },
   "dependencies": {
     "@expo-google-fonts/lora": "^0.4.2",
     "@expo-google-fonts/playfair-display": "^0.4.2",
-    "@expo/ngrok": "^4.1.0",
+    "@expo/ngrok": "^4.0.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/bottom-tabs": "^7.14.0",
