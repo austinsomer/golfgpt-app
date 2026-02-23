@@ -6,7 +6,7 @@ export function LoadingScreen() {
     <View style={styles.container}>
       <StatusBar hidden />
       <Image
-        source={require('../../../assets/loading-screen.png')}
+        source={require('../../../assets/loading-screen.jpg')}
         style={styles.image}
         resizeMode="cover"
       />
