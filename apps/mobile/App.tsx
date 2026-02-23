@@ -32,6 +32,13 @@ export default function App() {
   });
 
   const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [minLoadElapsed, setMinLoadElapsed] = useState(false);
+
+  // Minimum loading screen display — 1.5s branded moment (future: sponsor slot)
+  useEffect(() => {
+    const t = setTimeout(() => setMinLoadElapsed(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     AsyncStorage.getItem(ONBOARDED_KEY).then((value) => {
@@ -45,7 +52,7 @@ export default function App() {
     setShowOnboarding(false);
   };
 
-  if (!fontsLoaded || !onboardingChecked) {
+  if (!fontsLoaded || !onboardingChecked || !minLoadElapsed) {
     return <LoadingScreen />;
   }
 
