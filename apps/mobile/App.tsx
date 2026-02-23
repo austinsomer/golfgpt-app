@@ -36,7 +36,7 @@ export default function App() {
 
   // Minimum loading screen display — 1.5s branded moment (future: sponsor slot)
   useEffect(() => {
-    const t = setTimeout(() => setMinLoadElapsed(true), 1500);
+    const t = setTimeout(() => setMinLoadElapsed(true), 2000);
     return () => clearTimeout(t);
   }, []);
 
