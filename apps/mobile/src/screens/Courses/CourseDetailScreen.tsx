@@ -158,6 +158,11 @@ export function CourseDetailScreen({ route }: Props) {
           )}
           <StatRow label="PAR" value={course.par != null ? String(course.par) : '—'} />
           <View style={styles.statDivider} />
+          <StatRow
+            label="YARDS"
+            value={course.course_length_yards != null ? `${course.course_length_yards.toLocaleString()} yds` : '—'}
+          />
+          <View style={styles.statDivider} />
           <StatRow label="TYPE" value="PUBLIC" />
         </View>
 

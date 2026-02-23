@@ -37,6 +37,7 @@ export type Database = {
           lng: number | null;
           holes: 9 | 18 | 27 | 36 | null;
           par: number | null;
+          course_length_yards: number | null;
           website_url: string | null;
           booking_url: string | null;
           booking_platform: BookingPlatform | null;
