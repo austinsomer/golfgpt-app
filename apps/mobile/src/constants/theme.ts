@@ -55,7 +55,7 @@ export const typography = {
   tagline: { fontSize: 11, letterSpacing: 2 },
   sectionLabel: { fontSize: 13, letterSpacing: 1.5 },
   bodyLg: { fontSize: 17 },
-  body: { fontSize: 16 },
+  // NOTE: no 'body' scale key — would collide with body font family above
   caption: { fontSize: 11, letterSpacing: 1.5 },
   button: { fontSize: 12, letterSpacing: 1.5 },
 };
