@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   playerCellFirst: { borderLeftWidth: borders.default },
   playerCellActive: { backgroundColor: colors.brandGreen, borderColor: colors.brandGreen },
-  playerCellText: { fontFamily: typography.bodyBold, fontSize: 16, color: colors.textPrimary },
+  playerCellText: { fontFamily: typography.bodyBold, fontSize: typography.button.fontSize, letterSpacing: typography.button.letterSpacing, color: colors.textPrimary },
   playerCellTextActive: { color: colors.white },
   countyList: {
     borderWidth: borders.default,
