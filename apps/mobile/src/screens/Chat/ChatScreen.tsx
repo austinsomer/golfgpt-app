@@ -11,7 +11,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { MessageBubble } from '../../components/MessageBubble';
 import { useChatStore, Message } from '../../store/chatStore';
@@ -29,6 +29,7 @@ export function ChatScreen() {
   const [input, setInput] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const { messages, isLoading, addMessage, setLoading } = useChatStore();
+  const insets = useSafeAreaInsets();
 
   const handleSend = async (text?: string) => {
     const msg = (text ?? input).trim();
@@ -65,7 +66,8 @@ export function ChatScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    // Exclude bottom from SafeAreaView — KAV handles keyboard, we handle inset manually
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View style={styles.headerBar}>
         <View style={styles.headerLeft}>
@@ -78,10 +80,11 @@ export function ChatScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={90}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <FlatList
           ref={flatListRef}
+          style={styles.flex}
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <MessageBubble message={item} />}
@@ -120,30 +123,32 @@ export function ChatScreen() {
           </ScrollView>
         )}
 
-        {/* Input bar */}
-        <View style={styles.inputBar}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Ask about tee times..."
-            placeholderTextColor={colors.textMuted}
-            multiline
-            returnKeyType="send"
-            onSubmitEditing={() => handleSend()}
-            editable={!isLoading}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, (!input.trim() || isLoading) && styles.sendButtonDisabled]}
-            onPress={() => handleSend()}
-            disabled={!input.trim() || isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={colors.white} />
-            ) : (
-              <Ionicons name="arrow-up" size={18} color={colors.white} />
-            )}
-          </TouchableOpacity>
+        {/* Input bar — bottom inset handled manually instead of via SafeAreaView */}
+        <View style={[styles.inputWrapper, { paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.sm }]}>
+          <View style={styles.inputBar}>
+            <TextInput
+              style={styles.input}
+              value={input}
+              onChangeText={setInput}
+              placeholder="Ask about tee times..."
+              placeholderTextColor={colors.textMuted}
+              multiline
+              returnKeyType="send"
+              onSubmitEditing={() => handleSend()}
+              editable={!isLoading}
+            />
+            <TouchableOpacity
+              style={[styles.sendButton, (!input.trim() || isLoading) && styles.sendButtonDisabled]}
+              onPress={() => handleSend()}
+              disabled={!input.trim() || isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Ionicons name="arrow-up" size={18} color={colors.white} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -210,6 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
     gap: spacing.sm,
+    alignItems: 'center', // prevent vertical stretch
   },
   chip: {
     borderWidth: borders.active,
@@ -223,10 +229,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.brandGreen,
   },
+  inputWrapper: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+  },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    margin: spacing.md,
     borderWidth: borders.input,
     borderColor: colors.brandGreen,
     borderRadius: radius.md,

@@ -51,7 +51,7 @@ function QuickTeeTime({ result }: { result: TeeTimeResult }) {
 
 export function SearchScreen({ navigation }: Props) {
   const { date, players, county, setDate, setPlayers, setCounty } = useSearchStore();
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(true);
 
   const [counties, setCounties] = useState<string[]>([]);
   const [countiesLoading, setCountiesLoading] = useState(true);
@@ -115,6 +115,7 @@ export function SearchScreen({ navigation }: Props) {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
+              style={styles.quickScrollView}
               contentContainerStyle={styles.quickScroll}
               scrollEnabled={false}
             >
@@ -130,6 +131,7 @@ export function SearchScreen({ navigation }: Props) {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
+              style={styles.quickScrollView}
               contentContainerStyle={styles.quickScroll}
             >
               {upcoming.map((result) => (
@@ -274,7 +276,8 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontStyle: 'italic',
   },
-  quickScroll: { gap: spacing.sm, paddingRight: spacing.md },
+  quickScrollView: { marginHorizontal: -spacing.lg },
+  quickScroll: { gap: spacing.sm, paddingLeft: spacing.lg, paddingRight: spacing.lg },
   quickSkeletonCard: { width: 200 },
   quickCard: {
     width: 200,
