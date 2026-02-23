@@ -147,6 +147,11 @@ export function CourseDetailScreen({ route }: Props) {
               <Text style={[styles.address, styles.addressTappable]}>View in Maps ↗</Text>
             </TouchableOpacity>
           )}
+          {course.phone && (
+            <TouchableOpacity onPress={() => Linking.openURL(`tel:${course.phone}`)}>
+              <Text style={[styles.address, styles.addressTappable]}>{course.phone}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.divider} />
