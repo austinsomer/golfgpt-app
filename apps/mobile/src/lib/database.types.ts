@@ -90,7 +90,7 @@ export const COUNTY_DISPLAY: Record<County, string> = {
   salt_lake: 'Salt Lake',
   utah: 'Utah County',
   summit: 'Summit',
-  washington: 'Washington',
+  washington: 'St. George',
   weber: 'Weber',
   davis: 'Davis',
   cache: 'Cache',
