@@ -1,10 +1,12 @@
 import { create } from 'zustand';
+import { TeeTimeResult } from '../api/chat';
 
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  teeTimeResults?: TeeTimeResult[];
 }
 
 interface ChatState {
@@ -15,24 +17,23 @@ interface ChatState {
   clearChat: () => void;
 }
 
+const WELCOME: Message = {
+  id: 'welcome',
+  role: 'assistant',
+  content: "Hey — I'm Caddy Bot. Ask me anything about tee times in Utah. Try: \"Under $40 in Salt Lake this Saturday morning for 2 players.\"",
+  timestamp: Date.now(),
+};
+
 export const useChatStore = create<ChatState>((set) => ({
-  messages: [
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content:
-        "Hi! I can help you find tee times across Utah. Try asking: \"Any tee times Saturday morning for 4 people near Salt Lake?\"",
-      timestamp: Date.now(),
-    },
-  ],
+  messages: [WELCOME],
   isLoading: false,
   addMessage: (msg) =>
     set((state) => ({
       messages: [
         ...state.messages,
-        { ...msg, id: String(Date.now()), timestamp: Date.now() },
+        { ...msg, id: String(Date.now() + Math.random()), timestamp: Date.now() },
       ],
     })),
   setLoading: (isLoading) => set({ isLoading }),
-  clearChat: () => set({ messages: [], isLoading: false }),
+  clearChat: () => set({ messages: [WELCOME], isLoading: false }),
 }));

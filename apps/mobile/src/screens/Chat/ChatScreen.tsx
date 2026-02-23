@@ -9,39 +9,59 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { MessageBubble } from '../../components/MessageBubble';
-import { useChatStore } from '../../store/chatStore';
+import { useChatStore, Message } from '../../store/chatStore';
+import { queryCaddy, ChatMessage } from '../../api/chat';
 import { colors, spacing, radius, typography, borders } from '../../constants/theme';
 
 const SUGGESTION_CHIPS = [
-  'MORNING SLOTS IN SLC',
-  '9 HOLES NEAR ME',
-  'SAND HOLLOW THIS WEEKEND',
-  'BEST DEALS TODAY',
+  'Any slots today under $40?',
+  'Morning tee times in SLC',
+  '4 players this Saturday',
+  'What courses are in Weber County?',
 ];
 
 export function ChatScreen() {
   const [input, setInput] = useState('');
   const flatListRef = useRef<FlatList>(null);
-  const { messages, isLoading, addMessage } = useChatStore();
+  const { messages, isLoading, addMessage, setLoading } = useChatStore();
 
-  const handleSend = (text?: string) => {
+  const handleSend = async (text?: string) => {
     const msg = (text ?? input).trim();
-    if (!msg) return;
-
-    addMessage({ role: 'user', content: msg });
+    if (!msg || isLoading) return;
     setInput('');
 
-    // TODO: call AI endpoint
-    setTimeout(() => {
+    addMessage({ role: 'user', content: msg });
+
+    // Build conversation history for the API (exclude welcome + result metadata)
+    const history: ChatMessage[] = messages
+      .filter((m) => m.id !== 'welcome')
+      .slice(-9) // last 9 + new = 10 turns
+      .map((m: Message) => ({ role: m.role, content: m.content }));
+    history.push({ role: 'user', content: msg });
+
+    setLoading(true);
+    try {
+      const response = await queryCaddy(history);
       addMessage({
         role: 'assistant',
-        content: "I found several tee times matching your request. (Caddy Bot AI integration coming soon!)",
+        content: response.message,
+        teeTimeResults: response.teeTimeResults,
       });
-    }, 800);
+    } catch (err) {
+      addMessage({
+        role: 'assistant',
+        content: "Sorry, I couldn't connect right now. Try again in a moment.",
+      });
+    } finally {
+      setLoading(false);
+      // Scroll to bottom after response
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    }
   };
 
   return (
@@ -49,10 +69,10 @@ export function ChatScreen() {
       {/* Header */}
       <View style={styles.headerBar}>
         <View style={styles.headerLeft}>
-          <View style={styles.statusDot} />
+          <View style={[styles.statusDot, isLoading && styles.statusDotLoading]} />
           <Text style={styles.headerTitle}>CADDY BOT</Text>
         </View>
-        <Text style={styles.headerSub}>Your Utah golf assistant</Text>
+        <Text style={styles.headerSub}>AI · Utah golf assistant</Text>
       </View>
 
       <KeyboardAvoidingView
@@ -70,10 +90,18 @@ export function ChatScreen() {
             flatListRef.current?.scrollToEnd({ animated: true })
           }
           showsVerticalScrollIndicator={false}
+          ListFooterComponent={
+            isLoading ? (
+              <View style={styles.typingIndicator}>
+                <ActivityIndicator size="small" color={colors.brandGreen} />
+                <Text style={styles.typingText}>Caddy Bot is thinking...</Text>
+              </View>
+            ) : null
+          }
         />
 
-        {/* Suggestion chips */}
-        {messages.length <= 1 && (
+        {/* Suggestion chips — only before any user messages */}
+        {messages.filter((m) => m.role === 'user').length === 0 && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -84,6 +112,7 @@ export function ChatScreen() {
                 key={chip}
                 style={styles.chip}
                 onPress={() => handleSend(chip)}
+                disabled={isLoading}
               >
                 <Text style={styles.chipText}>{chip}</Text>
               </TouchableOpacity>
@@ -91,9 +120,8 @@ export function ChatScreen() {
           </ScrollView>
         )}
 
-        {/* Input bar — thick border is the focal point */}
+        {/* Input bar */}
         <View style={styles.inputBar}>
-          <Ionicons name="mic-outline" size={20} color={colors.textMuted} style={styles.micIcon} />
           <TextInput
             style={styles.input}
             value={input}
@@ -103,13 +131,18 @@ export function ChatScreen() {
             multiline
             returnKeyType="send"
             onSubmitEditing={() => handleSend()}
+            editable={!isLoading}
           />
           <TouchableOpacity
-            style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]}
+            style={[styles.sendButton, (!input.trim() || isLoading) && styles.sendButtonDisabled]}
             onPress={() => handleSend()}
             disabled={!input.trim() || isLoading}
           >
-            <Ionicons name="arrow-up" size={18} color={colors.white} />
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <Ionicons name="arrow-up" size={18} color={colors.white} />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -118,13 +151,8 @@ export function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bgCream,
-  },
-  flex: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: colors.bgCream },
+  flex: { flex: 1 },
   headerBar: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -146,6 +174,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: colors.statusGreen,
   },
+  statusDotLoading: {
+    backgroundColor: colors.textMuted,
+  },
   headerTitle: {
     fontFamily: typography.serif,
     fontSize: 16,
@@ -162,28 +193,36 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
+  typingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  typingText: {
+    fontFamily: typography.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    fontStyle: 'italic',
+  },
   chipsRow: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
     gap: spacing.sm,
   },
-  // Pill chips — full rounded, outlined in brand green
   chip: {
     borderWidth: borders.active,
     borderColor: colors.brandGreen,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: 'transparent',
   },
   chipText: {
     fontFamily: typography.bodyBold,
-    fontSize: typography.caption.fontSize,
-    letterSpacing: typography.caption.letterSpacing,
+    fontSize: 12,
     color: colors.brandGreen,
-    textTransform: 'uppercase',
   },
-  // Input bar — thick border is deliberate
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -194,9 +233,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.sm,
     minHeight: 56,
-  },
-  micIcon: {
-    paddingHorizontal: spacing.sm,
   },
   input: {
     flex: 1,
