@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import {
@@ -15,8 +14,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { OnboardingScreen } from './src/screens/Onboarding/OnboardingScreen';
+import { LoadingScreen } from './src/screens/Loading/LoadingScreen';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
-import { colors } from './src/constants/theme';
 import { useAppStore } from './src/store/appStore';
 
 const ONBOARDED_KEY = '@theloop:onboarded';
@@ -47,11 +46,7 @@ export default function App() {
   };
 
   if (!fontsLoaded || !onboardingChecked) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bgCream, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={colors.brandGreen} />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   if (showOnboarding) {

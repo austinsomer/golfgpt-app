@@ -4,8 +4,6 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  Modal,
-  Pressable,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
@@ -56,7 +54,6 @@ function QuickTeeTime({ result }: { result: TeeTimeResult }) {
 export function SearchScreen({ navigation }: Props) {
   const { date, players, county, timeOfDay, setDate, setPlayers, setCounty, setTimeOfDay } = useSearchStore();
   const { setShowOnboarding } = useAppStore();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
 
   const [counties, setCounties] = useState<string[]>([]);
@@ -103,31 +100,15 @@ export function SearchScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Image
-            source={require('../../../assets/the-loop-wordmark.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-          <Text style={styles.tagline}>NO VELVET ROPES.</Text>
-          <TouchableOpacity style={styles.menuButton} onPress={() => setMenuOpen(true)}>
-            <View style={styles.menuLine} />
-            <View style={[styles.menuLine, { width: 16 }]} />
+          <TouchableOpacity onPress={() => setShowOnboarding(true)} activeOpacity={0.75}>
+            <Image
+              source={require('../../../assets/the-loop-wordmark.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
+          <Text style={styles.tagline}>NO VELVET ROPES.</Text>
         </View>
-
-        {/* Menu modal */}
-        <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
-          <Pressable style={styles.menuOverlay} onPress={() => setMenuOpen(false)}>
-            <View style={styles.menuCard}>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => { setMenuOpen(false); setShowOnboarding(true); }}
-              >
-                <Text style={styles.menuItemText}>About</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Modal>
 
         <View style={styles.divider} />
 
@@ -424,43 +405,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: spacing.sm,
     borderRadius: radius.sm,
-  },
-  menuButton: {
-    position: 'absolute',
-    top: spacing.sm,
-    right: spacing.lg,
-    padding: spacing.xs,
-    gap: 5,
-  },
-  menuLine: {
-    width: 20,
-    height: 2,
-    backgroundColor: colors.textPrimary,
-    borderRadius: 1,
-  },
-  menuOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-  },
-  menuCard: {
-    marginTop: 80,
-    marginRight: spacing.md,
-    backgroundColor: colors.surface,
-    borderWidth: borders.default,
-    borderColor: colors.borderDefault,
-    minWidth: 140,
-  },
-  menuItem: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
-  menuItemText: {
-    fontFamily: typography.bodyBold,
-    fontSize: 14,
-    letterSpacing: 0.5,
-    color: colors.textPrimary,
   },
   searchButtonText: {
     fontFamily: typography.bodyBold,
