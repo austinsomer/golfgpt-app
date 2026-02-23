@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ScrollView,
   ActivityIndicator,
@@ -27,9 +28,16 @@ const SUGGESTION_CHIPS = [
 
 export function ChatScreen() {
   const [input, setInput] = useState('');
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const { messages, isLoading, addMessage, setLoading } = useChatStore();
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardWillShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener('keyboardWillHide', () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   const handleSend = async (text?: string) => {
     const msg = (text ?? input).trim();
@@ -125,7 +133,7 @@ export function ChatScreen() {
           )}
 
           {/* Input bar — bottom inset handled manually instead of via SafeAreaView */}
-          <View style={[styles.inputWrapper, { paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.sm }]}>
+          <View style={[styles.inputWrapper, { paddingBottom: keyboardVisible ? spacing.sm : (insets.bottom > 0 ? insets.bottom : spacing.sm) }]}>
           <View style={styles.inputBar}>
             <TextInput
               style={styles.input}
