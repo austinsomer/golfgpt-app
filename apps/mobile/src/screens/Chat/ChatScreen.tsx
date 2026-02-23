@@ -103,28 +103,29 @@ export function ChatScreen() {
           }
         />
 
-        {/* Suggestion chips — only before any user messages */}
-        {messages.filter((m) => m.role === 'user').length === 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
-          >
-            {SUGGESTION_CHIPS.map((chip) => (
-              <TouchableOpacity
-                key={chip}
-                style={styles.chip}
-                onPress={() => handleSend(chip)}
-                disabled={isLoading}
-              >
-                <Text style={styles.chipText}>{chip}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
+        {/* Chips + input anchored together at bottom */}
+        <View>
+          {messages.filter((m) => m.role === 'user').length === 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsRow}
+            >
+              {SUGGESTION_CHIPS.map((chip) => (
+                <TouchableOpacity
+                  key={chip}
+                  style={styles.chip}
+                  onPress={() => handleSend(chip)}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.chipText}>{chip}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
 
-        {/* Input bar — bottom inset handled manually instead of via SafeAreaView */}
-        <View style={[styles.inputWrapper, { paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.sm }]}>
+          {/* Input bar — bottom inset handled manually instead of via SafeAreaView */}
+          <View style={[styles.inputWrapper, { paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.sm }]}>
           <View style={styles.inputBar}>
             <TextInput
               style={styles.input}
@@ -148,6 +149,7 @@ export function ChatScreen() {
                 <Ionicons name="arrow-up" size={18} color={colors.white} />
               )}
             </TouchableOpacity>
+          </View>
           </View>
         </View>
       </KeyboardAvoidingView>
