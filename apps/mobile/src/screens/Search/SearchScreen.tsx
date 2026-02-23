@@ -1,26 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, radius, typography, borders } from '../../constants/theme';
 import { useSearchStore } from '../../store/searchStore';
 import { SearchStackParamList } from '../../navigation/SearchStack';
+import { DatePickerButton } from '../../components/DatePickerButton';
+import { getCounties } from '../../api/courses';
 
 type Props = {
   navigation: NativeStackNavigationProp<SearchStackParamList, 'Search'>;
 };
 
-const COUNTIES = ['ALL', 'SALT LAKE', 'UTAH COUNTY', 'SUMMIT', 'WASHINGTON'];
 const PLAYER_OPTIONS = [1, 2, 3, 4];
 
+// Max date: 14 days out (typical ForeUp booking window)
+function maxBookingDate(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  return d;
+}
+
 export function SearchScreen({ navigation }: Props) {
-  const { players, county, setPlayers, setCounty } = useSearchStore();
+  const { date, players, county, setDate, setPlayers, setCounty } = useSearchStore();
+
+  const [counties, setCounties] = useState<string[]>([]);
+  const [countiesLoading, setCountiesLoading] = useState(true);
+
+  useEffect(() => {
+    getCounties()
+      .then((data) => setCounties(['All', ...data]))
+      .catch(() => setCounties(['All']))
+      .finally(() => setCountiesLoading(false));
+  }, []);
+
+  const handleSearch = () => {
+    navigation.navigate('TeeTimes', {
+      date: date.toISOString().split('T')[0],
+      players,
+      county: !county || county === 'All' ? null : county,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -33,15 +60,18 @@ export function SearchScreen({ navigation }: Props) {
 
         <View style={styles.divider} />
 
-        {/* Date */}
+        {/* Date picker */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>DATE</Text>
-          <TouchableOpacity style={styles.dateSelector}>
-            <Text style={styles.dateSelectorText}>Today — Saturday, Feb 22</Text>
-          </TouchableOpacity>
+          <DatePickerButton
+            value={date}
+            onChange={setDate}
+            minDate={new Date()}
+            maxDate={maxBookingDate()}
+          />
         </View>
 
-        {/* Players — grid cells, sharp corners */}
+        {/* Players — sharp grid */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>PLAYERS</Text>
           <View style={styles.playerGrid}>
@@ -56,7 +86,9 @@ export function SearchScreen({ navigation }: Props) {
                 ]}
                 onPress={() => setPlayers(n)}
               >
-                <Text style={[styles.playerCellText, players === n && styles.playerCellTextActive]}>
+                <Text
+                  style={[styles.playerCellText, players === n && styles.playerCellTextActive]}
+                >
                   {n}
                 </Text>
               </TouchableOpacity>
@@ -64,34 +96,40 @@ export function SearchScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* County */}
+        {/* County — dynamic from DB */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>AREA</Text>
-          <View style={styles.countyList}>
-            {COUNTIES.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[styles.countyRow, county === c && styles.countyRowActive]}
-                onPress={() => setCounty(c)}
-              >
-                <Text style={[styles.countyText, county === c && styles.countyTextActive]}>
-                  {c}
-                </Text>
-                {county === c && <Text style={styles.checkmark}>✓</Text>}
-              </TouchableOpacity>
-            ))}
-          </View>
+          {countiesLoading ? (
+            <View style={styles.countiesLoading}>
+              <ActivityIndicator color={colors.brandGreen} size="small" />
+            </View>
+          ) : (
+            <View style={styles.countyList}>
+              {counties.map((c, i) => {
+                const isActive = (county === null && c === 'All') || county === c;
+                const isLast = i === counties.length - 1;
+                return (
+                  <TouchableOpacity
+                    key={c}
+                    style={[
+                      styles.countyRow,
+                      !isLast && styles.countyRowBorder,
+                      isActive && styles.countyRowActive,
+                    ]}
+                    onPress={() => setCounty(c === 'All' ? null : c)}
+                  >
+                    <Text style={[styles.countyText, isActive && styles.countyTextActive]}>
+                      {c.toUpperCase()}
+                    </Text>
+                    {isActive && <Text style={styles.checkmark}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
         </View>
 
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={() => navigation.navigate('TeeTimes', {
-            date: new Date().toISOString().split('T')[0],
-            players,
-            county: county === 'ALL' || !county ? null : county,
-          })}
-          activeOpacity={0.85}
-        >
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.85}>
           <Text style={styles.searchButtonText}>SEARCH TEE TIMES</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -143,19 +181,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: spacing.sm,
   },
-  dateSelector: {
-    borderWidth: borders.default,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.sm,
-    padding: spacing.md,
-    backgroundColor: colors.surface,
-  },
-  dateSelectorText: {
-    fontFamily: typography.body,
-    fontSize: typography.body.fontSize,
-    color: colors.textPrimary,
-  },
-  // Sharp grid cells for player count
   playerGrid: {
     flexDirection: 'row',
   },
@@ -170,11 +195,8 @@ const styles = StyleSheet.create({
   },
   playerCellFirst: {
     borderLeftWidth: borders.default,
-    borderRadius: 0,
   },
-  playerCellLast: {
-    borderRadius: 0,
-  },
+  playerCellLast: {},
   playerCellActive: {
     backgroundColor: colors.brandGreen,
     borderColor: colors.brandGreen,
@@ -187,7 +209,10 @@ const styles = StyleSheet.create({
   playerCellTextActive: {
     color: colors.white,
   },
-  // Time of day rows — slight rounding
+  countiesLoading: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
+  },
   countyList: {
     borderWidth: borders.default,
     borderColor: colors.borderDefault,
@@ -201,6 +226,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     backgroundColor: colors.surface,
+  },
+  countyRowBorder: {
     borderBottomWidth: borders.default,
     borderBottomColor: colors.borderDefault,
   },
@@ -212,7 +239,6 @@ const styles = StyleSheet.create({
     fontSize: typography.button.fontSize,
     letterSpacing: typography.button.letterSpacing,
     color: colors.textPrimary,
-    textTransform: 'uppercase',
   },
   countyTextActive: {
     color: colors.white,
