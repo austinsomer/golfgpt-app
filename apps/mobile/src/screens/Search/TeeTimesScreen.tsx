@@ -103,7 +103,7 @@ export function TeeTimesScreen({ route }: Props) {
         <View style={styles.centered}>
           <Text style={styles.emptyTitle}>No tee times found</Text>
           <Text style={styles.emptyBody}>
-            Try a different date, more players, or expand to all areas.
+            No dice, do another search?
           </Text>
         </View>
       ) : (

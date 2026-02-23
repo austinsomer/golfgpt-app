@@ -17,10 +17,17 @@ interface ChatState {
   clearChat: () => void;
 }
 
+const WELCOME_MESSAGES = [
+  "Public courses. Real prices. No velvet ropes.\n\nTell me where you want to play, when, and how many — I'll find what's open.",
+  "Golf's meant to be walked and talked. Drop your county, budget, or player count and I'll pull what's available.",
+  "No tee box is off limits here. Ask me anything about Utah tee times — try: \"Under $40 in Salt Lake, 2 players, this Saturday morning.\"",
+  "You're in the Loop. Ask me for times — where do you want to play?",
+];
+
 const WELCOME: Message = {
   id: 'welcome',
   role: 'assistant',
-  content: "Hey — I'm Caddy Bot. Ask me anything about tee times in Utah. Try: \"Under $40 in Salt Lake this Saturday morning for 2 players.\"",
+  content: WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)],
   timestamp: Date.now(),
 };
 

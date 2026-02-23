@@ -17,10 +17,12 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { OnboardingScreen } from './src/screens/Onboarding/OnboardingScreen';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { colors } from './src/constants/theme';
+import { useAppStore } from './src/store/appStore';
 
 const ONBOARDED_KEY = '@theloop:onboarded';
 
 export default function App() {
+  const { showOnboarding, setShowOnboarding } = useAppStore();
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_700Bold,
@@ -31,7 +33,6 @@ export default function App() {
   });
 
   const [onboardingChecked, setOnboardingChecked] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(ONBOARDED_KEY).then((value) => {

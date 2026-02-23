@@ -3,6 +3,8 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Linking,
+  Platform,
   StyleSheet,
   ScrollView,
 } from 'react-native';
@@ -116,7 +118,35 @@ export function CourseDetailScreen({ route }: Props) {
             {formatCounty(course.county).toUpperCase()} COUNTY
           </Text>
           <Text style={styles.courseName}>{course.name}</Text>
-          {course.address && <Text style={styles.address}>{course.address}</Text>}
+          {course.address ? (
+            <TouchableOpacity
+              onPress={() => {
+                const query = encodeURIComponent(course.address!);
+                const url = Platform.OS === 'ios'
+                  ? `maps:?q=${query}`
+                  : `geo:0,0?q=${query}`;
+                Linking.openURL(url).catch(() =>
+                  Linking.openURL(`https://maps.google.com/?q=${query}`)
+                );
+              }}
+            >
+              <Text style={[styles.address, styles.addressTappable]}>{course.address}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                const query = encodeURIComponent(course.name + ' golf course Utah');
+                const url = Platform.OS === 'ios'
+                  ? `maps:?q=${query}`
+                  : `geo:0,0?q=${query}`;
+                Linking.openURL(url).catch(() =>
+                  Linking.openURL(`https://maps.google.com/?q=${query}`)
+                );
+              }}
+            >
+              <Text style={[styles.address, styles.addressTappable]}>View in Maps ↗</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -126,13 +156,9 @@ export function CourseDetailScreen({ route }: Props) {
           {course.holes != null && (
             <><StatRow label="HOLES" value={String(course.holes)} /><View style={styles.statDivider} /></>
           )}
-          {course.par != null && (
-            <><StatRow label="PAR" value={String(course.par)} /><View style={styles.statDivider} /></>
-          )}
+          <StatRow label="PAR" value={course.par != null ? String(course.par) : '—'} />
+          <View style={styles.statDivider} />
           <StatRow label="TYPE" value="PUBLIC" />
-          {course.booking_platform && (
-            <><View style={styles.statDivider} /><StatRow label="PLATFORM" value={course.booking_platform.toUpperCase()} /></>
-          )}
         </View>
 
         <View style={styles.divider} />
@@ -256,6 +282,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
     marginTop: spacing.xs,
+  },
+  addressTappable: {
+    color: colors.brandGreen,
+    textDecorationLine: 'underline',
   },
   divider: {
     height: borders.default,
