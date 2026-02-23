@@ -79,7 +79,7 @@ export function DatePickerButton({ value, onChange, minDate, maxDate }: Props) {
         <Modal
           visible={show}
           transparent
-          animationType="slide"
+          animationType="none"
           onRequestClose={() => setShow(false)}
         >
           <View style={styles.modalOverlay}>
