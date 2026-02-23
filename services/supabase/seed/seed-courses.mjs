@@ -38,29 +38,57 @@ try {
   process.exit(1);
 }
 
-// Map scraper schema → Supabase schema
+// Normalize county string to schema enum value (e.g. "Salt Lake" → "salt_lake")
+function toCountyEnum(county) {
+  return county.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z_]/g, '');
+}
+
+// Map scraper schema (camelCase) → Supabase schema (snake_case)
 const rows = rawCourses.map((c) => ({
   name: c.name,
-  county: c.county,
+  county: toCountyEnum(c.county),
   address: c.address ?? null,
   lat: c.lat ?? null,
   lng: c.lng ?? null,
   holes: c.holes ?? 18,
   par: c.par ?? null,
-  website_url: c.website_url ?? null,
-  booking_url: c.booking_url ?? null,
+  website_url: c.websiteUrl ?? c.website_url ?? null,
+  booking_url: c.bookingUrl ?? c.booking_url ?? null,
   booking_platform: c.platform ?? 'foreup',
   phone: c.phone ?? null,
   description: c.description ?? null,
   active: c.verified !== false, // mark unverified courses as inactive
 }));
 
-console.log(`Seeding ${rows.length} course(s)...`);
+// Filter to counties supported by current schema constraint.
+// After applying migration 003, remove this filter.
+const SUPPORTED_COUNTIES = ['salt_lake', 'utah', 'summit', 'washington'];
+const seedRows = rows.filter((r) => SUPPORTED_COUNTIES.includes(r.county));
+const skipped = rows.filter((r) => !SUPPORTED_COUNTIES.includes(r.county));
+if (skipped.length > 0) {
+  console.warn(`Skipping ${skipped.length} course(s) with unsupported county (apply migration 003 to fix):`);
+  skipped.forEach((r) => console.warn(`  - ${r.name} (county: ${r.county})`));
+}
 
-const { data, error } = await supabase
+console.log(`Seeding ${seedRows.length} course(s)...`);
+
+// Note: upsert requires a unique constraint on booking_url (migration 002).
+// If that migration hasn't been applied yet, this falls back to plain insert.
+let data, error;
+({ data, error } = await supabase
   .from('courses')
-  .upsert(rows, { onConflict: 'name' })
-  .select('id, name, active');
+  .upsert(seedRows, { onConflict: 'booking_url' })
+  .select('id, name, active'));
+
+// Fallback: if upsert fails (no unique constraint yet), try plain insert
+if (error && error.message.includes('no unique or exclusion constraint')) {
+  console.warn('No unique constraint on booking_url — falling back to plain insert.');
+  console.warn('Apply migration 002_courses_unique_booking_url.sql in Supabase Studio for future upserts.');
+  ({ data, error } = await supabase
+    .from('courses')
+    .insert(seedRows)
+    .select('id, name, active'));
+}
 
 if (error) {
   console.error('Seed failed:', error.message);
