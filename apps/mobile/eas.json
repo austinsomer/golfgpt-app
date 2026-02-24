@@ -8,7 +8,7 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
+      "distribution": "store",
       "env": {
         "EXPO_NO_DOCTOR": "1"
       },
@@ -22,6 +22,15 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {},
+    "preview": {
+      "ios": {
+        "ascAppId": "6759616620",
+        "appleTeamId": "M75TNKHZ2G",
+        "ascApiKeyPath": "/tmp/asc_key.p8",
+        "ascApiKeyIssuerId": "998e593e-87f8-4c39-aef0-4bec685e4b5e",
+        "ascApiKeyId": "8P75U6B844"
+      }
+    }
   }
 }
