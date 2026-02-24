@@ -1,7 +1,7 @@
 # The Loop — App Store Metadata
 
 ## App Name
-The Loop
+The Loop - Golf
 
 ## Subtitle (30 chars max)
 Utah Tee Times, No Waiting
