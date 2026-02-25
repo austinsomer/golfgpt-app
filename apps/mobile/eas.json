@@ -10,7 +10,9 @@
     "preview": {
       "distribution": "store",
       "env": {
-        "EXPO_NO_DOCTOR": "1"
+        "EXPO_NO_DOCTOR": "1",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://opzqsxrfqasqadnjdgop.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wenFzeHJmcWFzcWFkbmpkZ29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODgxMDAsImV4cCI6MjA4NzM2NDEwMH0.RGn-byppGy3FceVgXAob8fzraspBizaux3RwfHzmpr0"
       },
       "ios": {
         "simulator": false,
