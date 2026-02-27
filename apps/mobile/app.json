@@ -2,7 +2,7 @@
   "expo": {
     "name": "The Loop",
     "slug": "the-loop",
-    "version": "1.0.0",
+    "version": "1.0227",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -17,8 +17,7 @@
       "bundleIdentifier": "golf.theloop",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      },
-      "buildNumber": "2"
+      }
     },
     "android": {
       "package": "golf.theloop",
@@ -27,8 +26,7 @@
         "backgroundColor": "#2A1810"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "versionCode": 2
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
