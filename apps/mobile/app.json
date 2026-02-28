@@ -2,7 +2,7 @@
   "expo": {
     "name": "The Loop",
     "slug": "the-loop",
-    "version": "1.0.0",
+    "version": "1.0227",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "golf.theloop"
+      "bundleIdentifier": "golf.theloop",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "golf.theloop",
