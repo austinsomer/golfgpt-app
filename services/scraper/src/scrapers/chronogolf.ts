@@ -1,211 +1,105 @@
-import { TeeTime } from '../types';
+import { Course, ChronogolfResponse, TeeTime } from '../types';
 
-const BASE_URL = 'https://www.chronogolf.com/marketplace/v2/teetimes';
+const BASE_URL = 'https://www.chronogolf.com/marketplace/v2';
 
 /**
- * Chronogolf course config (separate from ForeUp courses.json).
- * course_ids are the sub-course numeric IDs from /marketplace/v2/clubs/{slug}.
+ * Returns true if the given UTC date falls within Mountain Daylight Time.
+ * MDT: 2nd Sunday of March 02:00 → 1st Sunday of November 02:00
  */
-export interface ChronogolfCourse {
-  id: string;          // our internal ID
-  name: string;
-  city: string;
-  county: string;
-  slug: string;        // chronogolf club slug
-  courseIds: number[]; // sub-course IDs (Gold, Lake, Canyon, etc.)
-  bookingUrl: string;
-  holes: number;
-}
+function isMDT(utcDate: Date): boolean {
+  const year = utcDate.getUTCFullYear();
 
-export const CHRONOGOLF_COURSES: ChronogolfCourse[] = [
-  {
-    id: 'cg-mountain-dell-lake',
-    name: 'Mountain Dell Golf Course (Lake)',
-    city: 'Salt Lake City',
-    county: 'Salt Lake',
-    slug: 'mountain-dell-golf-club',
-    courseIds: [16291],
-    bookingUrl: 'https://www.chronogolf.com/club/mountain-dell-golf-club',
-    holes: 18,
-  },
-  {
-    id: 'cg-mountain-dell-canyon',
-    name: 'Mountain Dell Golf Course (Canyon)',
-    city: 'Salt Lake City',
-    county: 'Salt Lake',
-    slug: 'mountain-dell-golf-club',
-    courseIds: [16290],
-    bookingUrl: 'https://www.chronogolf.com/club/mountain-dell-golf-club',
-    holes: 18,
-  },
-  {
-    id: 'cg-forest-dale',
-    name: 'Forest Dale Golf Course',
-    city: 'Salt Lake City',
-    county: 'Salt Lake',
-    slug: 'forest-dale-golf-course',
-    courseIds: [], // populated on first run via API
-    bookingUrl: 'https://www.chronogolf.com/club/forest-dale-golf-course',
-    holes: 9,
-  },
-  {
-    id: 'cg-glendale',
-    name: 'Glendale Golf Course',
-    city: 'Salt Lake City',
-    county: 'Salt Lake',
-    slug: 'glendale-golf-course',
-    courseIds: [],
-    bookingUrl: 'https://www.chronogolf.com/club/glendale-golf-course',
-    holes: 18,
-  },
-  {
-    id: 'cg-bonneville',
-    name: 'Bonneville Golf Course',
-    city: 'Salt Lake City',
-    county: 'Salt Lake',
-    slug: 'bonneville-golf-course',
-    courseIds: [],
-    bookingUrl: 'https://www.chronogolf.com/club/bonneville-golf-course',
-    holes: 18,
-  },
-  {
-    id: 'cg-nibley-park',
-    name: 'Nibley Park Golf Course',
-    city: 'Salt Lake City',
-    county: 'Salt Lake',
-    slug: 'nibley-park-golf-course',
-    courseIds: [],
-    bookingUrl: 'https://www.chronogolf.com/club/nibley-park-golf-course',
-    holes: 9,
-  },
-  {
-    id: 'cg-rose-park',
-    name: 'Rose Park Golf Course',
-    city: 'Salt Lake City',
-    county: 'Salt Lake',
-    slug: 'rose-park-golf-course',
-    courseIds: [],
-    bookingUrl: 'https://www.chronogolf.com/club/rose-park-golf-course',
-    holes: 18,
-  },
-  {
-    id: 'cg-river-oaks',
-    name: 'River Oaks Golf Course',
-    city: 'Sandy',
-    county: 'Salt Lake',
-    slug: 'river-oaks-golf-course-utah',
-    courseIds: [],
-    bookingUrl: 'https://www.chronogolf.com/club/river-oaks-golf-course-utah',
-    holes: 18,
-  },
-  {
-    id: 'cg-round-valley',
-    name: 'Round Valley Golf Course',
-    city: 'Morgan',
-    county: 'Morgan',
-    slug: 'round-valley-golf-course',
-    courseIds: [],
-    bookingUrl: 'https://www.chronogolf.com/club/round-valley-golf-course',
-    holes: 18,
-  },
-];
+  const mar1Day = new Date(Date.UTC(year, 2, 1)).getUTCDay();
+  const dstStartDay = mar1Day === 0 ? 8 : 8 + (7 - mar1Day);
+  const dstStart = new Date(Date.UTC(year, 2, dstStartDay, 9, 0, 0)); // 02:00 MST = 09:00 UTC
 
-interface ChronogolfTeeTime {
-  uuid: string;
-  start_time: string; // 'HH:MM'
-  start_date: string; // 'YYYY-MM-DD'
-  price_per_player: number | null;
-  available_players: number;
-  holes: number;
-  status: string;
-}
+  const nov1Day = new Date(Date.UTC(year, 10, 1)).getUTCDay();
+  const dstEndDay = nov1Day === 0 ? 1 : 8 - nov1Day;
+  const dstEnd = new Date(Date.UTC(year, 10, dstEndDay, 8, 0, 0)); // 02:00 MDT = 08:00 UTC
 
-interface ChronogolfResponse {
-  status: 'open' | 'closed' | 'off_season' | string;
-  teetimes: ChronogolfTeeTime[];
+  return utcDate >= dstStart && utcDate < dstEnd;
 }
 
 /**
- * Resolve course IDs from the Chronogolf club API if not hardcoded.
+ * Chronogolf returns local Mountain Time strings like "07:30" with a separate date "2026-03-07".
+ * Convert to UTC ISO string with correct DST offset.
  */
-async function resolveCourseIds(slug: string): Promise<number[]> {
-  const res = await fetch(`https://www.chronogolf.com/marketplace/v2/clubs/${slug}`, {
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (compatible; TheLoop/1.0)',
-    },
-    redirect: 'follow',
-  });
+function mountainToISO(date: string, time: string): string {
+  const localStr = `${date}T${time}:00`;
+  const approxUTC = new Date(localStr + 'Z');
+  const offset = isMDT(approxUTC) ? '-06:00' : '-07:00';
+  return new Date(localStr + offset).toISOString();
+}
 
-  if (!res.ok) {
-    console.warn(`[chronogolf] Could not fetch club info for ${slug}: ${res.status}`);
+/**
+ * Resolve Chronogolf course IDs for a given club slug.
+ * Returns an array of numeric course IDs.
+ */
+export async function fetchCourseIds(slug: string): Promise<number[]> {
+  try {
+    const res = await fetch(`${BASE_URL}/clubs/${slug}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TheLoop/1.0)' },
+    });
+    if (!res.ok) {
+      console.error(`[chronogolf] clubs/${slug} returned ${res.status}`);
+      return [];
+    }
+    const data = await res.json();
+    const courses: Array<{ id: number }> = data?.courses ?? [];
+    return courses.map((c) => c.id);
+  } catch (err) {
+    console.error(`[chronogolf] Error fetching club ${slug}:`, err);
     return [];
   }
-
-  const data = await res.json();
-  if (!data.features?.online_booking_enabled) {
-    console.log(`[chronogolf] ${slug} has online_booking_enabled=false, skipping`);
-    return [];
-  }
-
-  return (data.courses ?? []).map((c: { id: number }) => c.id);
 }
 
 /**
- * Fetch tee times for a Chronogolf course on a given date.
- * date: YYYY-MM-DD
+ * Fetch tee times for a Chronogolf course on a given date (YYYY-MM-DD).
  */
-export async function fetchChronogolfTeeTimes(
-  course: ChronogolfCourse,
-  date: string,
-): Promise<TeeTime[]> {
-  // Resolve course IDs if not hardcoded
-  let courseIds = course.courseIds;
-  if (courseIds.length === 0) {
-    courseIds = await resolveCourseIds(course.slug);
-    if (courseIds.length === 0) return [];
-    // Cache them back on the object for subsequent calls
-    course.courseIds = courseIds;
+export async function fetchTeeTimes(course: Course, date: string): Promise<TeeTime[]> {
+  if (!course.courseIds || course.courseIds.length === 0) {
+    console.warn(`[chronogolf] ${course.name} has no courseIds — skipping`);
+    return [];
   }
 
   const params = new URLSearchParams({
     start_date: date,
-    course_ids: courseIds.join(','),
+    course_ids: course.courseIds.join(','),
     holes: course.holes.toString(),
-    free_slots: '4',
+    free_slots: '1',
   });
 
   try {
-    const res = await fetch(`${BASE_URL}?${params}`, {
+    const res = await fetch(`${BASE_URL}/teetimes?${params}`, {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'Mozilla/5.0 (compatible; TheLoop/1.0)',
-        'Referer': `https://www.chronogolf.com/club/${course.slug}`,
       },
     });
 
     if (!res.ok) {
-      console.warn(`[chronogolf] ${course.name} ${date}: HTTP ${res.status}`);
+      console.error(`[chronogolf] ${course.name} ${date} returned ${res.status}`);
       return [];
     }
 
     const data: ChronogolfResponse = await res.json();
 
-    if (data.status === 'closed' || data.status === 'off_season') {
+    if (!Array.isArray(data?.teetimes)) {
+      console.error(`[chronogolf] Unexpected response for ${course.name}:`, data);
       return [];
     }
 
-    return (data.teetimes ?? [])
-      .filter((t) => t.status === 'published' && t.available_players > 0)
-      .map((t) => ({
+    return data.teetimes
+      .filter((slot) => slot.status === 'published' && slot.available_players > 0)
+      .map((slot) => ({
         courseId: course.id,
-        time: new Date(`${t.start_date}T${t.start_time}:00-07:00`).toISOString(), // MST
-        holes: t.holes ?? course.holes,
-        players: t.available_players,
-        priceUsd: t.price_per_player ?? null,
+        time: mountainToISO(slot.start_date, slot.start_time),
+        holes: course.holes,
+        players: slot.available_players,
+        priceUsd: slot.price_per_player ?? null,
       }));
   } catch (err) {
-    console.error(`[chronogolf] ${course.name} ${date}: fetch error`, err);
+    console.error(`[chronogolf] Error fetching ${course.name} ${date}:`, err);
     return [];
   }
 }

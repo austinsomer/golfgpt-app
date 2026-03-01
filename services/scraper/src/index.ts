@@ -1,6 +1,7 @@
 import courses from './config/courses';
-import { fetchTeeTimes } from './scrapers/foreup';
-import { fetchChronogolfTeeTimes, CHRONOGOLF_COURSES, ChronogolfCourse } from './scrapers/chronogolf';
+import { fetchTeeTimes as fetchForeUpTeeTimes } from './scrapers/foreup';
+import { fetchTeeTimes as fetchChronogolfTeeTimes } from './scrapers/chronogolf';
+import { TeeTime } from './types';
 import supabase from './lib/supabase';
 
 function getDateRange(days: number): string[] {
@@ -53,7 +54,14 @@ async function run() {
     let totalFound = 0;
 
     for (const date of dates) {
-      const times = await fetchTeeTimes(course, date);
+      let times: TeeTime[];
+      if (course.platform === 'chronogolf') {
+        // Chronogolf uses YYYY-MM-DD; convert from MM-DD-YYYY
+        const [mm, dd, yyyy] = date.split('-');
+        times = await fetchChronogolfTeeTimes(course, `${yyyy}-${mm}-${dd}`);
+      } else {
+        times = await fetchForeUpTeeTimes(course, date);
+      }
       totalFound += times.length;
 
       if (times.length > 0) {
@@ -91,78 +99,6 @@ async function run() {
     });
 
     console.log(`[scraper] ${course.name}: ${totalFound} tee times found`);
-  }
-
-  // --- Chronogolf scraper ---
-  console.log(`[scraper] Running Chronogolf for ${CHRONOGOLF_COURSES.length} courses × ${dates.length} days`);
-
-  // Get UUID map for Chronogolf courses (matched by booking_url)
-  const { data: cgDbCourses, error: cgErr } = await supabase
-    .from('courses')
-    .select('id, booking_url')
-    .eq('active', true);
-
-  if (cgErr) {
-    console.error('[scraper] Failed to fetch Chronogolf course UUIDs:', cgErr.message);
-  } else {
-    const cgUuidMap = new Map<string, string>();
-    for (const row of cgDbCourses ?? []) {
-      const local = CHRONOGOLF_COURSES.find((c) => c.bookingUrl === row.booking_url);
-      if (local) cgUuidMap.set(local.id, row.id);
-    }
-
-    for (const course of CHRONOGOLF_COURSES) {
-      const dbUuid = cgUuidMap.get(course.id);
-      if (!dbUuid) {
-        console.warn(`[scraper] Skipping ${course.name} — not in DB (seed it first)`);
-        continue;
-      }
-
-      const startedAt = new Date().toISOString();
-      let totalFound = 0;
-
-      for (const date of dates) {
-        // Chronogolf uses YYYY-MM-DD (convert from MM-DD-YYYY)
-        const [mm, dd, yyyy] = date.split('-');
-        const isoDate = `${yyyy}-${mm}-${dd}`;
-        const times = await fetchChronogolfTeeTimes(course, isoDate);
-        totalFound += times.length;
-
-        if (times.length > 0) {
-          const rows = times.map((t) => {
-            const teetime = new Date(t.time);
-            const expiresAt = new Date(teetime.getTime() + 60 * 60 * 1000);
-            return {
-              course_id: dbUuid,
-              datetime: t.time,
-              holes: t.holes,
-              players_available: t.players,
-              price: t.priceUsd,
-              expires_at: expiresAt.toISOString(),
-            };
-          });
-
-          const { error } = await supabase
-            .from('tee_times')
-            .upsert(rows, { onConflict: 'course_id,datetime' });
-
-          if (error) {
-            console.error(`[scraper] Upsert error for ${course.name} ${isoDate}:`, error.message);
-          }
-        }
-      }
-
-      const completedAt = new Date().toISOString();
-      await supabase.from('scraper_runs').insert({
-        course_id: dbUuid,
-        started_at: startedAt,
-        finished_at: completedAt,
-        status: 'success',
-        tee_times_found: totalFound,
-      });
-
-      console.log(`[chronogolf] ${course.name}: ${totalFound} tee times found`);
-    }
   }
 
   console.log('[scraper] Done.');
