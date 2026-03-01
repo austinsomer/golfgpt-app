@@ -500,5 +500,57 @@
         "courseIds":  [
                           16311
                       ]
+    },
+    {
+        "facilityIds":  [
+                            17072
+                        ],
+        "id":  "tt_soldier_hollow_silver",
+        "county":  "wasatch",
+        "platform":  "teeitup",
+        "alias":  "aspira-management-company",
+        "bookingUrl":  "https://aspira-management-company.book-v2.teeitup.golf/?course=17072",
+        "name":  "Soldier Hollow Golf Course (Silver)",
+        "verified":  true,
+        "holes":  18
+    },
+    {
+        "facilityIds":  [
+                            17073
+                        ],
+        "id":  "tt_soldier_hollow_gold",
+        "county":  "wasatch",
+        "platform":  "teeitup",
+        "alias":  "aspira-management-company",
+        "bookingUrl":  "https://aspira-management-company.book-v2.teeitup.golf/?course=17073",
+        "name":  "Soldier Hollow Golf Course (Gold)",
+        "verified":  true,
+        "holes":  18
+    },
+    {
+        "facilityIds":  [
+                            17070
+                        ],
+        "id":  "tt_wasatch_mountain_lake",
+        "county":  "wasatch",
+        "platform":  "teeitup",
+        "alias":  "aspira-management-company",
+        "bookingUrl":  "https://aspira-management-company.book-v2.teeitup.golf/?course=17070",
+        "name":  "Wasatch Mountain Golf Course (Lake)",
+        "verified":  true,
+        "holes":  18
+    },
+    {
+        "facilityIds":  [
+                            17067
+                        ],
+        "id":  "tt_wasatch_mountain_canyon",
+        "county":  "wasatch",
+        "platform":  "teeitup",
+        "alias":  "aspira-management-company",
+        "bookingUrl":  "https://aspira-management-company.book-v2.teeitup.golf/?course=17067",
+        "name":  "Wasatch Mountain Golf Course (Canyon)",
+        "verified":  true,
+        "holes":  18
     }
 ]
