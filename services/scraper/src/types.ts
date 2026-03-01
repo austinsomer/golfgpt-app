@@ -7,7 +7,7 @@ export interface Course {
   bookingId: number;
   scheduleId: number;
   bookingUrl: string;
-  platform: 'foreup';
+  platform: 'foreup' | 'chronogolf' | 'teeitup';
   verified: boolean;
 }
 
