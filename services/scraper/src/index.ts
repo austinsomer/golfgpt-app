@@ -1,6 +1,7 @@
 import courses from './config/courses';
 import { fetchTeeTimes as fetchForeUpTeeTimes } from './scrapers/foreup';
 import { fetchTeeTimes as fetchChronogolfTeeTimes } from './scrapers/chronogolf';
+import { fetchTeeTimes as fetchTeeItUpTeeTimes } from './scrapers/teeitup';
 import { TeeTime } from './types';
 import supabase from './lib/supabase';
 
@@ -59,6 +60,10 @@ async function run() {
         // Chronogolf uses YYYY-MM-DD; convert from MM-DD-YYYY
         const [mm, dd, yyyy] = date.split('-');
         times = await fetchChronogolfTeeTimes(course, `${yyyy}-${mm}-${dd}`);
+      } else if (course.platform === 'teeitup') {
+        // TeeItUp uses YYYY-MM-DD; convert from MM-DD-YYYY
+        const [mm, dd, yyyy] = date.split('-');
+        times = await fetchTeeItUpTeeTimes(course, `${yyyy}-${mm}-${dd}`);
       } else {
         times = await fetchForeUpTeeTimes(course, date);
       }
