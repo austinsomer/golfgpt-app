@@ -1,5 +1,7 @@
 import courses from './config/courses';
-import { fetchTeeTimes } from './scrapers/foreup';
+import { fetchTeeTimes as fetchForeUpTeeTimes } from './scrapers/foreup';
+import { fetchTeeTimes as fetchChronogolfTeeTimes } from './scrapers/chronogolf';
+import { TeeTime } from './types';
 import supabase from './lib/supabase';
 
 function getDateRange(days: number): string[] {
@@ -52,7 +54,14 @@ async function run() {
     let totalFound = 0;
 
     for (const date of dates) {
-      const times = await fetchTeeTimes(course, date);
+      let times: TeeTime[];
+      if (course.platform === 'chronogolf') {
+        // Chronogolf uses YYYY-MM-DD; convert from MM-DD-YYYY
+        const [mm, dd, yyyy] = date.split('-');
+        times = await fetchChronogolfTeeTimes(course, `${yyyy}-${mm}-${dd}`);
+      } else {
+        times = await fetchForeUpTeeTimes(course, date);
+      }
       totalFound += times.length;
 
       if (times.length > 0) {
