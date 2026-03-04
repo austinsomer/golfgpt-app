@@ -58,6 +58,8 @@ const rows = rawCourses.map((c) => ({
   phone: c.phone ?? null,
   description: c.description ?? null,
   active: c.verified !== false, // mark unverified courses as inactive
+  // NOTE: upsert on booking_url will update existing rows including `active`.
+  // Always ensure courses.json is fully synced (git pull) before running this script.
 }));
 
 // Migration 003 applied — all Utah counties now supported
